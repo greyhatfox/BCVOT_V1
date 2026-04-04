@@ -5,6 +5,8 @@
 
 const BC = (() => {
 
+  const PLACEHOLDER = 'YOUR_CONTRACT_ADDRESS_HERE';
+
   let _provider = null;
   let _signer   = null;
   let _contract = null;
@@ -13,42 +15,59 @@ const BC = (() => {
   /* ── internal helpers ── */
 
   function _initContract(signerOrProvider) {
-    if (CONTRACT_ADDRESS === '0xea085af4fE00C9A5697A2653976743b752d82e80') return null;
+    if (CONTRACT_ADDRESS === PLACEHOLDER) return null;
     return new ethers.Contract(CONTRACT_ADDRESS, ABI, signerOrProvider);
   }
 
   async function _ensureSepolia() {
-    const chainId = await _provider.send('eth_chainId', []);
-    if (chainId.toLowerCase() === SEPOLIA.chainId.toLowerCase()) return;
     try {
+      const chainId = await _provider.send('eth_chainId', []);
+      if (chainId.toLowerCase() === SEPOLIA.chainId.toLowerCase()) return; // already correct
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: SEPOLIA.chainId }]
       });
-    } catch {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [SEPOLIA]
-      });
+    } catch (e) {
+      if (e.code === 4902 || (e.data?.originalError?.code === 4902)) {
+        // Chain not in wallet yet – add it
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [SEPOLIA]
+        });
+      } else if (e.code === 4001) {
+        throw new Error('Please switch to the Sepolia network in MetaMask.');
+      }
+      // Swallow other errors (race conditions, already switching, etc.)
     }
   }
 
   function _requireContract() {
-    if (CONTRACT_ADDRESS === '0xea085af4fE00C9A5697A2653976743b752d82e80')
-      throw new Error('DEPLOY: Contract address not set in js/config.js');
-    if (!_contract) throw new Error('Not connected to wallet');
+    if (CONTRACT_ADDRESS === PLACEHOLDER)
+      throw new Error('Contract not deployed yet — see DEPLOY.md, then paste the address into js/config.js');
+    if (!_contract) throw new Error('Wallet not connected. Please refresh the page and connect.');
   }
 
   /* ─────── PUBLIC API ─────── */
 
-  /** Connect MetaMask, switch to Sepolia, return wallet address */
+  /** Connect MetaMask → Sepolia → return checksummed wallet address */
   async function connect() {
-    if (!window.ethereum) throw new Error('MetaMask not installed');
+    if (!window.ethereum) throw new Error('MetaMask not detected.');
     _provider = new ethers.BrowserProvider(window.ethereum);
+
+    // Request accounts (triggers MetaMask popup)
+    try {
+      await _provider.send('eth_requestAccounts', []);
+    } catch (e) {
+      if (e.code === 4001) throw new Error('Connection rejected — please approve in MetaMask.');
+      throw e;
+    }
+
+    // Switch to Sepolia if needed
     await _ensureSepolia();
-    const accounts = await _provider.send('eth_requestAccounts', []);
+
+    // getSigner + getAddress gives the reliable checksummed address
     _signer   = await _provider.getSigner();
-    _address  = accounts[0];
+    _address  = await _signer.getAddress();
     _contract = _initContract(_signer);
     localStorage.setItem('swevot_wallet', _address.toLowerCase());
     return _address;
@@ -57,13 +76,17 @@ const BC = (() => {
   /** Silent reconnect (no MetaMask popup) – returns address or null */
   async function reconnect() {
     if (!window.ethereum) return null;
-    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-    if (!accounts.length) return null;
-    _provider = new ethers.BrowserProvider(window.ethereum);
-    _signer   = await _provider.getSigner();
-    _address  = accounts[0];
-    _contract = _initContract(_signer);
-    return _address;
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (!accounts || !accounts.length) return null;
+      _provider = new ethers.BrowserProvider(window.ethereum);
+      _signer   = await _provider.getSigner();
+      _address  = await _signer.getAddress();
+      _contract = _initContract(_signer);
+      return _address;
+    } catch {
+      return null; // silently fail – pages handle the null case
+    }
   }
 
   /* ── voter ── */
@@ -173,7 +196,7 @@ const BC = (() => {
   }
 
   function isDeployed() {
-    return CONTRACT_ADDRESS !== '0xea085af4fE00C9A5697A2653976743b752d82e80';
+    return CONTRACT_ADDRESS !== PLACEHOLDER;
   }
 
   function getSavedWallet() {

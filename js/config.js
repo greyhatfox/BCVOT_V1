@@ -3,14 +3,14 @@
 //  After deploying VotingSystem.sol to Sepolia, paste the address below.
 // ─────────────────────────────────────────────────────────────
 
-const CONTRACT_ADDRESS = 'YOUR_CONTRACT_ADDRESS_HERE';
+const CONTRACT_ADDRESS = '0xea085af4fE00C9A5697A2653976743b752d82e80';
 
 const SEPOLIA = {
-  chainId:            '0xaa36a7',   // 11155111 decimal
-  chainName:          'Sepolia Test Network',
-  rpcUrls:            ['https://rpc.sepolia.org'],
-  blockExplorerUrls:  ['https://sepolia.etherscan.io'],
-  nativeCurrency:     { name: 'Sepolia ETH', symbol: 'ETH', decimals: 18 }
+  chainId: '0xaa36a7',   // 11155111 decimal
+  chainName: 'Sepolia Test Network',
+  rpcUrls: ['https://rpc.sepolia.org'],
+  blockExplorerUrls: ['https://sepolia.etherscan.io'],
+  nativeCurrency: { name: 'Sepolia ETH', symbol: 'ETH', decimals: 18 }
 };
 
 // Human-readable ABI for ethers.js v6
