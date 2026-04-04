@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nav-links">
+    <a href="dashboard.html" id="nav-dashboard" class="active">Dashboard</a>
+    <a href="ballots.html" id="nav-ballots">Ballots</a>
+    <a href="history.html" id="nav-history">History</a>
+    <a href="results.html" id="nav-results">Live Results</a>
+    <a href="auth.html" id="nav-auth" style="color:rgba(255,255,255,0.35); font-size:0.8rem;">Auth Demo</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-dot"></div>
+    <div>
+      <div class="nav-username">ROHAN SINGH</div>
+      <div class="verified-badge">● VERIFIED</div>
+    </div>
+    <div class="nav-avatar">RS</div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+  </div>
+</nav>
+
+<div style="display:flex;flex:1;">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <a href="dashboard.html" class="sidebar-icon active" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="sidebar-label">Dashboard</span>
+    </a>
+    <a href="ballots.html" class="sidebar-icon" title="Ballots">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span class="sidebar-label">Ballots</span>
+    </a>
+    <a href="history.html" class="sidebar-icon" title="History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="sidebar-label">History</span>
+    </a>
+    <a href="results.html" class="sidebar-icon" title="Live Results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sidebar-label">Live Results</span>
+    </a>
+    <div class="sidebar-divider"></div>
+    <a class="sidebar-icon" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+      <span class="sidebar-label">Settings</span>
+    </a>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="top-row">
+      <div class="page-title">VOTER DASHBOARD</div>
+      <input type="text" class="search-bar" placeholder="🔍  Search" />
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- PERSONAL CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Personal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a0aec0" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="voter-avatar">👤</div>
+          <div class="voter-name">ROHAN SINGH <span style="color:var(--accent);font-size:0.8rem">✓</span></div>
+          <div class="voter-sub">VERIFIED VOTER · CONSTITUENCY 42</div>
+
+          <div class="section-divider"></div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:8px">VOTER PROFILE &amp; TOKEN STATUS</div>
+
+          <div class="wallet-block">
+            <div class="wallet-icon">💳</div>
+            <div>
+              <div class="wallet-label">VOTING WALLET</div>
+              <div class="wallet-address">0x7a...4b</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <span style="font-size:0.78rem;color:var(--text3)">Status</span>
+            <span class="status-badge status-eligible">STATUS: ELIGIBLE</span>
+          </div>
+
+          <div class="token-section">
+            <div class="token-label">Voting Tokens:</div>
+            <div class="token-count" id="token-display">1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE BALLOT CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Active Ballot</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+        </div>
+        <div class="card-body">
+          <div class="ballot-title">NATIONAL ELECTION 2026:<br>PARLIAMENTARY SEAT</div>
+          <div class="ballot-sub">Select <strong>one</strong> candidate. Your choice is <strong>FINAL.</strong></div>
+
+          <div class="candidate-card selected" onclick="selectCandidate(this,0)">
+            <div class="candidate-photo">👩</div>
+            <div class="candidate-info">
+              <div class="candidate-name">Jane Doe</div>
+              <div class="candidate-party">Progressive Party</div>
+            </div>
+            <div>🌿</div>
+            <div class="selected-check">✓</div>
+          </div>
+
+          <div class="candidate-card" onclick="selectCandidate(this,1)">
+            <div class="candidate-photo">👨</div>
+            <div class="candidate-info">
+              <div class="candidate-name">John Smith</div>
+              <div class="candidate-party">Unity Party</div>
+            </div>
+            <div>⭐</div>
+          </div>
+
+          <div class="candidate-card" onclick="selectCandidate(this,2)">
+            <div class="candidate-photo">👩‍💼</div>
+            <div class="candidate-info">
+              <div class="candidate-name">Emily Chen</div>
+              <div class="candidate-party">Independent Party</div>
+            </div>
+            <div>∞</div>
+          </div>
+
+          <button class="cast-vote-btn" onclick="castVote()">CAST VOTE</button>
+        </div>
+      </div>
+
+      <!-- TRANSACTION HISTORY CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Transaction History</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a0aec0" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="card-body" style="padding:12px 16px">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Tx Hash</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tx-body">
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(6,214,160,0.1)">🟢</div><span class="tx-hash">0x9b5...</span></div></td>
+                <td class="tx-time">0x.95..07:14:39</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(0,180,216,0.1)">🔵</div><span class="tx-hash">0x82c...</span></div></td>
+                <td class="tx-time">0x.95..07:17:35</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(239,35,60,0.1)">🔴</div><span class="tx-hash">0xa2c...</span></div></td>
+                <td class="tx-time">0x.95..07:16:32</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(255,190,11,0.1)">🟡</div><span class="tx-hash">0x90e...</span></div></td>
+                <td class="tx-time">0x.95..07:10:31</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(6,214,160,0.1)">🟢</div><span class="tx-hash">0x9b5...</span></div></td>
+                <td class="tx-time">0x.95..07:14:39</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(0,180,216,0.1)">🔵</div><span class="tx-hash">0xa2c...</span></div></td>
+                <td class="tx-time">0x.95..07:16:31</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:7px"><div class="tx-icon" style="background:rgba(139,92,246,0.1)">🟣</div><span class="tx-hash">0x80c...</span></div></td>
+                <td class="tx-time">0x.95..07:16:31</td>
+                <td><span class="status-confirmed">CONFIRMED</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <button class="load-more-btn" onclick="loadMore()">Load More</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-title">✅ VOTING SUCCESSFUL!</div>
+  <div class="toast-sub" id="toast-sub">Transaction ID: 0x9b5...0f179273</div>
+</div>
+
+<script src="../js/script.js"></script>
+</body>
+</html>
