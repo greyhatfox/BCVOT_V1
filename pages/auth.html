@@ -1,61 +1,421 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blockchain Voting System V2 – Auth</title>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../css/styles.css" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SWEVOT – Identity Verification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/styles.css"/>
+  <style>
+    body { background: linear-gradient(135deg,#0a1628 0%,#0d2240 50%,#0a1628 100%); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  nav { background:rgba(10,22,40,0.95); display:flex; align-items:center; justify-content:space-between; padding:0 32px; height:56px; position:fixed; top:0; left:0; right:0; z-index:100; border-bottom:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(12px); }
+  nav .nb { font-family:'Rajdhani',sans-serif; font-size:1.15rem; font-weight:700; color:#fff; letter-spacing:1px; }
+  nav .nb span { color:var(--primary); }
+  nav .nl { display:flex; gap:4px; align-items:center; }
+  nav .nl a { color:rgba(255,255,255,0.55); text-decoration:none; font-size:0.82rem; font-weight:500; padding:5px 12px; border-radius:7px; cursor:pointer; transition:background .2s,color .2s; }
+  nav .nl a:hover { background:rgba(0,180,216,0.15); color:var(--primary); }
+  .page-wrap { margin-top:64px; display:flex; flex-direction:column; align-items:center; }
+    .brand { font-family:'Rajdhani',sans-serif; font-size:1.4rem; font-weight:700; color:#fff; letter-spacing:2px; margin-bottom:24px; opacity:0.9; }
+    .brand span { color:var(--primary); }
+    .auth-box { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(20px); border-radius:20px; padding:40px 36px; width:440px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.4); position:relative; overflow:hidden; }
+    .auth-box::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; background:linear-gradient(90deg,var(--primary),var(--accent)); }
+
+    /* step bar */
+    .steps { display:flex; gap:8px; align-items:center; margin-bottom:28px; }
+    .step-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.2); transition:background .3s; }
+    .step-dot.active { background:var(--primary); box-shadow:0 0 8px var(--primary); }
+    .step-dot.done { background:var(--accent); }
+    .step-line { flex:1; height:2px; background:rgba(255,255,255,0.1); border-radius:2px; }
+    .step-line.done { background:var(--accent); }
+
+    /* screens */
+    .screen { display:none; }
+    .screen.active { display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* deploy warning */
+    .deploy-warning { background:rgba(239,179,35,0.12); border:1px solid rgba(239,179,35,0.4); border-radius:10px; padding:12px 16px; font-size:0.78rem; color:#f0c040; margin-bottom:20px; display:none; }
+    .deploy-warning.show { display:block; }
+
+    /* screen titles */
+    .screen-title { font-family:'Rajdhani',sans-serif; font-size:1.5rem; font-weight:700; color:#fff; letter-spacing:0.5px; margin-bottom:4px; }
+    .screen-sub { font-size:0.82rem; color:rgba(255,255,255,0.5); margin-bottom:24px; }
+
+    /* wallet button */
+    .wallet-btn { width:100%; padding:14px 20px; background:linear-gradient(90deg,#f6851b,#e2761b); color:#fff; border:none; border-radius:10px; font-family:'Rajdhani',sans-serif; font-size:1.05rem; font-weight:700; letter-spacing:1.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; transition:opacity .2s,transform .15s; }
+    .wallet-btn:hover { opacity:.9; transform:translateY(-1px); }
+    .wallet-btn img { width:24px; height:24px; }
+
+    /* wallet badge */
+    .wallet-badge { display:flex; align-items:center; gap:10px; background:rgba(0,180,216,0.1); border:1px solid rgba(0,180,216,0.25); border-radius:10px; padding:10px 14px; margin-bottom:20px; }
+    .wallet-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+    .wallet-addr-text { font-family:'JetBrains Mono',monospace; font-size:0.82rem; color:var(--primary); }
+    .wallet-name-text { font-size:0.78rem; color:rgba(255,255,255,0.5); }
+
+    /* form fields */
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:0.78rem; font-weight:600; color:rgba(255,255,255,0.6); margin-bottom:6px; letter-spacing:0.5px; }
+    .field input, .field select { width:100%; padding:11px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:0.88rem; color:#fff; outline:none; letter-spacing:1px; transition:border-color .2s; }
+    .field input:focus, .field select:focus { border-color:var(--primary); background:rgba(0,180,216,0.06); }
+    .field input::placeholder { color:rgba(255,255,255,0.25); letter-spacing:0.5px; }
+    .field select option { background:#0d2240; color:#fff; }
+
+    /* candidate toggle */
+    .toggle-card { border:1.5px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px 16px; cursor:pointer; transition:border-color .2s,background .2s; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+    .toggle-card.on { border-color:var(--primary); background:rgba(0,180,216,0.07); }
+    .toggle-check { width:20px; height:20px; border-radius:5px; border:2px solid rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; font-size:0.75rem; flex-shrink:0; transition:background .2s,border-color .2s; }
+    .toggle-card.on .toggle-check { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .toggle-label { font-size:0.82rem; color:rgba(255,255,255,0.7); font-weight:500; }
+    .toggle-label strong { color:#fff; }
+    .candidate-fields { overflow:hidden; max-height:0; transition:max-height .3s ease; }
+    .candidate-fields.open { max-height:300px; }
+
+    /* emoji picker */
+    .emoji-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .emoji-opt { width:38px; height:38px; border-radius:8px; border:2px solid rgba(255,255,255,0.12); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.2rem; transition:border-color .2s,background .2s; }
+    .emoji-opt.selected { border-color:var(--primary); background:rgba(0,180,216,0.15); }
+
+    /* primary btn */
+    .primary-btn { width:100%; padding:14px; background:linear-gradient(90deg,var(--primary-dark),var(--primary)); color:#fff; border:none; border-radius:10px; font-family:'Rajdhani',sans-serif; font-size:1.05rem; font-weight:700; letter-spacing:2px; cursor:pointer; margin-top:8px; transition:opacity .2s,transform .15s; }
+    .primary-btn:hover:not(:disabled) { opacity:.9; transform:translateY(-1px); }
+    .primary-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* fingerprint */
+    .fp-ring { width:130px; height:130px; border-radius:50%; border:3px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; position:relative; margin:0 auto 16px; }
+    .fp-ring::before { content:''; position:absolute; inset:6px; border-radius:50%; border:2px solid transparent; border-top-color:var(--primary); border-right-color:var(--primary); animation:spin 1.2s linear infinite; }
+    .fp-ring.verified::before { border-color:var(--accent); animation:none; }
+    .fp-ring.verified { border-color:rgba(6,214,160,0.4); }
+    .fp-icon { font-size:3rem; }
+    .fp-status { text-align:center; font-size:0.85rem; color:rgba(255,255,255,0.5); }
+    .fp-status.ok { color:var(--accent); font-weight:600; }
+
+    /* error */
+    .err-msg { background:rgba(239,35,60,0.12); border:1px solid rgba(239,35,60,0.3); border-radius:8px; padding:10px 14px; font-size:0.8rem; color:#ff6b6b; margin-bottom:14px; display:none; }
+    .err-msg.show { display:block; }
+
+    /* spinner */
+    .spinner { width:40px; height:40px; border:3px solid rgba(255,255,255,0.08); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-text { text-align:center; font-size:0.85rem; color:rgba(255,255,255,0.45); }
+
+    /* no-mm screen */
+    .no-mm-icon { font-size:3rem; text-align:center; margin-bottom:12px; }
+    .skip-link { margin-top:18px; text-align:center; font-size:0.75rem; color:rgba(255,255,255,0.3); }
+  .skip-link a { color:rgba(0,180,216,0.6); text-decoration:none; cursor:pointer; }
+  .skip-link a:hover { color:var(--primary); }
+</style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
-  <div class="nav-links">
-    <a href="dashboard.html" id="nav-dashboard">Dashboard</a>
-    <a href="ballots.html" id="nav-ballots">Ballots</a>
-    <a href="history.html" id="nav-history">History</a>
-    <a href="results.html" id="nav-results">Live Results</a>
-    <a href="auth.html" id="nav-auth" class="active" style="color:rgba(255,255,255,0.35); font-size:0.8rem;">Auth Demo</a>
-  </div>
-  <div class="nav-user">
-    <div class="nav-dot"></div>
-    <div>
-      <div class="nav-username">ROHAN SINGH</div>
-      <div class="verified-badge">● VERIFIED</div>
-    </div>
-    <div class="nav-avatar">RS</div>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+  <div class="nb">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nl">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="ballots.html">Ballots</a>
+    <a href="history.html">History</a>
+    <a href="results.html">Live Results</a>
   </div>
 </nav>
 
-<div style="flex:1;background:linear-gradient(135deg,#e8f4f8,#f0f8fc,#e8f0f8);display:flex;">
-  <div class="auth-page" style="flex:1">
-    <div class="auth-card">
-      <div class="auth-title">Identity Verification</div>
-      <div class="auth-sub">Verify using your 12-Digit Aadhaar number to access the voting system.</div>
+<div class="page-wrap">
+<div class="brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
 
-      <div class="input-group">
-        <label class="input-label">12-Digit Aadhaar</label>
-        <input type="text" class="input-field" placeholder="XXXX-XXXX-XXXX" maxlength="14" id="aadhaar-input" oninput="formatAadhaar(this)" />
-      </div>
+<div class="auth-box">
 
-      <div class="fingerprint-section">
-        <div class="fingerprint-ring">
-          <div class="fp-icon">🖐</div>
-        </div>
-        <div class="fp-label">Biometric Authentication<br><span style="color:var(--primary);font-weight:600">Place finger on sensor</span></div>
-      </div>
+  <!-- deploy warning (shown if contract not set) -->
+  <div class="deploy-warning" id="deploy-warning">
+    ⚠️ Contract not yet deployed. Paste the Sepolia address into <code>js/config.js</code> — see <strong>DEPLOY.md</strong>.
+  </div>
 
-      <button class="auth-btn" onclick="doAuth()">VERIFY &amp; CONTINUE</button>
+  <!-- step indicator -->
+  <div class="steps" id="steps">
+    <div class="step-dot active" id="s1"></div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-dot" id="s2"></div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-dot" id="s3"></div>
+  </div>
 
-      <div class="uidai-note">
-        🔒 Secured by <strong>UIDAI</strong> · Identity Verification (Aadhaar)
+  <!-- ── SCREEN: no metamask ── -->
+  <div class="screen" id="screen-no-mm">
+    <div class="no-mm-icon">🦊</div>
+    <div class="screen-title" style="text-align:center">MetaMask Required</div>
+    <div class="screen-sub" style="text-align:center">Install MetaMask browser extension to use SWEVOT.</div>
+    <a href="https://metamask.io/download/" target="_blank" class="primary-btn" style="display:block;text-align:center;text-decoration:none;padding:14px">INSTALL METAMASK</a>
+  </div>
+
+  <!-- ── SCREEN: connect wallet ── -->
+  <div class="screen active" id="screen-connect">
+    <div class="screen-title">Connect Your Wallet</div>
+    <div class="screen-sub">Your wallet is your voter ID on the blockchain.</div>
+    <button class="wallet-btn" onclick="onConnect()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 7H4C2.9 7 2 7.9 2 9v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z" fill="rgba(255,255,255,0.8)"/><path d="M16 3H8L6 7h12l-2-4z" fill="rgba(255,255,255,0.5)"/></svg>
+      CONNECT WITH METAMASK
+    </button>
+    <p style="font-size:0.75rem;color:rgba(255,255,255,0.25);text-align:center;margin-top:16px">Sepolia Testnet · SepoliaETH</p>
+  </div>
+
+  <!-- ── SCREEN: loading ── -->
+  <div class="screen" id="screen-loading">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Connecting to blockchain…</div>
+  </div>
+
+  <!-- ── SCREEN: register (new user) ── -->
+  <div class="screen" id="screen-register">
+    <div class="screen-title">Create Voter Profile</div>
+    <div class="screen-sub">Your details will be linked to your wallet on-chain.</div>
+    <div class="wallet-badge" id="reg-wallet-badge">
+      <div class="wallet-dot"></div>
+      <div>
+        <div class="wallet-addr-text" id="reg-wallet-addr">0x…</div>
+        <div class="wallet-name-text">Connected · Sepolia</div>
       </div>
     </div>
-  </div>
-</div>
+    <div class="err-msg" id="reg-err"></div>
+    <form id="reg-form" onsubmit="onRegister(event)">
+      <div class="field">
+        <label>FULL NAME</label>
+        <input id="reg-name" type="text" placeholder="e.g. Rohan Singh" required/>
+      </div>
+      <div class="field">
+        <label>CONSTITUENCY</label>
+        <input id="reg-const" type="text" placeholder="e.g. Constituency 42" required/>
+      </div>
+      <div class="field">
+        <label>12-DIGIT AADHAAR</label>
+        <input id="reg-aadhaar" type="text" placeholder="XXXX-XXXX-XXXX" maxlength="14" oninput="fmtAadhaar(this)" required/>
+      </div>
 
-<script src="../js/script.js"></script>
+      <!-- candidate toggle -->
+      <div class="toggle-card" id="cand-toggle" onclick="toggleCandidate()">
+        <div class="toggle-check" id="cand-check"></div>
+        <div class="toggle-label"><strong>Also register as a candidate</strong><br>Run on the ballot this election</div>
+      </div>
+      <div class="candidate-fields" id="cand-fields">
+        <div class="field">
+          <label>PARTY / MOVEMENT NAME</label>
+          <input id="cand-party" type="text" placeholder="e.g. Progressive Alliance"/>
+        </div>
+        <div class="field">
+          <label>SYMBOL EMOJI</label>
+          <div class="emoji-row" id="emoji-row">
+            <div class="emoji-opt selected" data-e="🌿" onclick="pickEmoji(this)">🌿</div>
+            <div class="emoji-opt" data-e="⭐" onclick="pickEmoji(this)">⭐</div>
+            <div class="emoji-opt" data-e="🔵" onclick="pickEmoji(this)">🔵</div>
+            <div class="emoji-opt" data-e="🌸" onclick="pickEmoji(this)">🌸</div>
+            <div class="emoji-opt" data-e="🦁" onclick="pickEmoji(this)">🦁</div>
+            <div class="emoji-opt" data-e="🔥" onclick="pickEmoji(this)">🔥</div>
+            <div class="emoji-opt" data-e="⚡" onclick="pickEmoji(this)">⚡</div>
+            <div class="emoji-opt" data-e="🏆" onclick="pickEmoji(this)">🏆</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="primary-btn" type="submit" id="reg-btn">REGISTER &amp; CONTINUE</button>
+    </form>
+  </div>
+
+  <!-- ── SCREEN: login (returning user) ── -->
+  <div class="screen" id="screen-login">
+    <div class="screen-title">Welcome Back</div>
+    <div class="screen-sub">Verify your identity to continue.</div>
+    <div class="wallet-badge" id="login-wallet-badge">
+      <div class="wallet-dot"></div>
+      <div>
+        <div class="wallet-addr-text" id="login-wallet-addr">0x…</div>
+        <div class="wallet-name-text" id="login-voter-name">Verified Voter</div>
+      </div>
+    </div>
+    <div class="err-msg" id="login-err"></div>
+    <form onsubmit="onLogin(event)">
+      <div class="field">
+        <label>ENTER YOUR AADHAAR TO CONFIRM IDENTITY</label>
+        <input id="login-aadhaar" type="text" placeholder="XXXX-XXXX-XXXX" maxlength="14" oninput="fmtAadhaar(this)" required/>
+      </div>
+      <button class="primary-btn" type="submit">VERIFY IDENTITY</button>
+    </form>
+  </div>
+
+  <!-- ── SCREEN: fingerprint ── -->
+  <div class="screen" id="screen-fp">
+    <div style="text-align:center;padding:20px 0">
+      <div class="fp-ring" id="fp-ring">
+        <div class="fp-icon">🖐</div>
+      </div>
+      <div class="screen-title" style="text-align:center">Biometric Auth</div>
+      <div class="fp-status" id="fp-status">Place finger on sensor…</div>
+    </div>
+  </div>
+
+</div><!-- auth-box -->
+
+<div class="skip-link">
+  No wallet yet? <a href="dashboard.html">Browse in demo mode →</a>
+</div>
+</div><!-- page-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+<script src="../js/config.js"></script>
+<script src="../js/blockchain.js"></script>
+<script>
+  let _isCand = false;
+  let _selectedEmoji = '🌿';
+
+  /* ── init ── */
+  function init() {
+    if (!BC.isDeployed()) document.getElementById('deploy-warning').classList.add('show');
+    // ALWAYS start on the connect screen.
+    // window.ethereum is injected by MetaMask asynchronously — never check it at page load.
+    showScreen('connect');
+  }
+
+  /* ── screens ── */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    updateSteps(id);
+  }
+
+  function updateSteps(id) {
+    const map = { connect:1, register:2, login:2, fp:3, loading:1 };
+    const step = map[id] || 1;
+    ['s1','s2','s3'].forEach((sid, i) => {
+      const el = document.getElementById(sid);
+      el.className = 'step-dot' + (i+1 < step ? ' done' : i+1 === step ? ' active' : '');
+    });
+    ['sl1','sl2'].forEach((sid,i) => {
+      document.getElementById(sid).className = 'step-line' + (i+1 < step ? ' done' : '');
+    });
+  }
+
+  function setLoading(msg) {
+    document.getElementById('loading-text').textContent = msg || 'Please wait…';
+    showScreen('loading');
+  }
+
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+
+  /* ── connect ── */
+  async function onConnect() {
+    // Give MetaMask a tiny moment to finish injecting (important on file:// URLs)
+    await new Promise(r => setTimeout(r, 100));
+    if (!window.ethereum) { showScreen('no-mm'); return; }
+    setLoading('Connecting to MetaMask…');
+    try {
+      const addr = await BC.connect();
+      setLoading('Checking voter registration…');
+      if (!BC.isDeployed()) { showScreen('register'); fillWalletBadges(addr, ''); return; }
+      const voter = await BC.getVoter(addr);
+      fillWalletBadges(addr, voter.name || '');
+      if (voter.registered) {
+        document.getElementById('login-voter-name').textContent = voter.name + ' · Verified Voter';
+        showScreen('login');
+      } else {
+        showScreen('register');
+      }
+    } catch(e) {
+      showScreen('connect');
+      alert('Error: ' + (e.reason || e.message));
+    }
+  }
+
+
+  function fillWalletBadges(addr, name) {
+    const short = BC.shortAddr(addr);
+    document.getElementById('reg-wallet-addr').textContent = short;
+    document.getElementById('login-wallet-addr').textContent = short;
+    if (name) document.getElementById('login-voter-name').textContent = name + ' · Verified Voter';
+  }
+
+  /* ── register ── */
+  async function onRegister(e) {
+    e.preventDefault();
+    const name    = document.getElementById('reg-name').value.trim();
+    const cons    = document.getElementById('reg-const').value.trim();
+    const aadhaar = document.getElementById('reg-aadhaar').value.trim();
+    if (aadhaar.replace(/\D/g,'').length < 12) { showErr('reg-err','Enter a valid 12-digit Aadhaar'); return; }
+
+    const btn = document.getElementById('reg-btn');
+    btn.disabled = true; btn.textContent = 'Sending transaction…';
+
+    try {
+      await BC.registerVoter(name, cons, aadhaar);
+
+      if (_isCand) {
+        btn.textContent = 'Registering as candidate…';
+        const party = document.getElementById('cand-party').value.trim() || 'Independent';
+        await BC.registerCandidate(name, party, _selectedEmoji);
+      }
+
+      showFingerprintScreen();
+    } catch(e) {
+      showErr('reg-err', e.reason || e.message);
+      btn.disabled = false; btn.textContent = 'REGISTER & CONTINUE';
+    }
+  }
+
+  /* ── login ── */
+  async function onLogin(e) {
+    e.preventDefault();
+    const aadhaar = document.getElementById('login-aadhaar').value.trim();
+    if (aadhaar.replace(/\D/g,'').length < 12) { showErr('login-err','Enter your 12-digit Aadhaar'); return; }
+    setLoading('Verifying Aadhaar…');
+    try {
+      const ok = await BC.verifyAadhaar(aadhaar);
+      if (!ok) { showScreen('login'); showErr('login-err','Aadhaar does not match this wallet'); return; }
+      showFingerprintScreen();
+    } catch(e) {
+      showScreen('login');
+      showErr('login-err', e.reason || e.message);
+    }
+  }
+
+  /* ── fingerprint ── */
+  function showFingerprintScreen() {
+    showScreen('fp');
+    const ring = document.getElementById('fp-ring');
+    const status = document.getElementById('fp-status');
+    setTimeout(() => {
+      status.textContent = 'Scanning biometrics…';
+      if (navigator.vibrate) navigator.vibrate([100,50,100]);
+    }, 600);
+    setTimeout(() => {
+      ring.classList.add('verified');
+      status.textContent = '✅ Identity Confirmed';
+      status.classList.add('ok');
+    }, 2200);
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 3200);
+  }
+
+  /* ── candidate toggle ── */
+  function toggleCandidate() {
+    _isCand = !_isCand;
+    document.getElementById('cand-toggle').classList.toggle('on', _isCand);
+    document.getElementById('cand-check').textContent = _isCand ? '✓' : '';
+    document.getElementById('cand-fields').classList.toggle('open', _isCand);
+  }
+
+  function pickEmoji(el) {
+    document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+    _selectedEmoji = el.dataset.e;
+  }
+
+  /* ── aadhaar formatter ── */
+  function fmtAadhaar(el) {
+    let v = el.value.replace(/\D/g,'').slice(0,12);
+    let parts = [];
+    for (let i=0; i<v.length; i+=4) parts.push(v.slice(i,i+4));
+    el.value = parts.join('-');
+  }
+
+  init();
+</script>
 </body>
 </html>
