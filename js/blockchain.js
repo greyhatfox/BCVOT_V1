@@ -1,11 +1,9 @@
 // ─────────────────────────────────────────────────────────────
 //  SWEVOT  –  Blockchain Layer
-//  Requires: ethers.js v6 (CDN), js/config.js
+//  Requires: ethers.js v6 (CDN), js/env.js, js/config.js
 // ─────────────────────────────────────────────────────────────
 
 const BC = (() => {
-
-  const PLACEHOLDER = '0x20bC54A6AD65c2D2e24999aE4AA09D3361d1c4Cd';
 
   let _provider = null;
   let _signer   = null;
@@ -15,7 +13,6 @@ const BC = (() => {
   /* ── internal helpers ── */
 
   function _initContract(signerOrProvider) {
-    if (CONTRACT_ADDRESS === PLACEHOLDER) return null;
     return new ethers.Contract(CONTRACT_ADDRESS, ABI, signerOrProvider);
   }
 
@@ -42,8 +39,6 @@ const BC = (() => {
   }
 
   function _requireContract() {
-    if (CONTRACT_ADDRESS === PLACEHOLDER)
-      throw new Error('Contract not deployed yet — see DEPLOY.md, then paste the address into js/config.js');
     if (!_contract) throw new Error('Wallet not connected. Please refresh the page and connect.');
   }
 
@@ -196,7 +191,8 @@ const BC = (() => {
   }
 
   function isDeployed() {
-    return CONTRACT_ADDRESS !== PLACEHOLDER;
+    // CONTRACT_ADDRESS is always set (env.js throws at load if missing)
+    return typeof CONTRACT_ADDRESS === 'string' && CONTRACT_ADDRESS.startsWith('0x');
   }
 
   function getSavedWallet() {

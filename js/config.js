@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 //  SWEVOT  –  Contract Configuration
-//  After deploying VotingSystem.sol to Sepolia, paste the address below.
+//  The contract address is loaded from js/env.js (gitignored).
+//  Copy js/env.example.js → js/env.js and fill in your address.
 // ─────────────────────────────────────────────────────────────
 
-const CONTRACT_ADDRESS = '0x20bC54A6AD65c2D2e24999aE4AA09D3361d1c4Cd';
+const CONTRACT_ADDRESS = (window.__ENV__ && window.__ENV__.CONTRACT_ADDRESS)
+  || (() => { throw new Error('CONTRACT_ADDRESS not set. Did you create js/env.js?'); })();
 
 const SEPOLIA = {
   chainId: '0xaa36a7',   // 11155111 decimal
