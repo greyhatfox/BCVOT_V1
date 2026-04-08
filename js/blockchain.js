@@ -5,7 +5,7 @@
 
 const BC = (() => {
 
-  const PLACEHOLDER = 'YOUR_CONTRACT_ADDRESS_HERE';
+  const PLACEHOLDER = '0x20bC54A6AD65c2D2e24999aE4AA09D3361d1c4Cd';
 
   let _provider = null;
   let _signer   = null;
