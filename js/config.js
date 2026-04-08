@@ -3,7 +3,7 @@
 //  After deploying VotingSystem.sol to Sepolia, paste the address below.
 // ─────────────────────────────────────────────────────────────
 
-const CONTRACT_ADDRESS = '0xea085af4fE00C9A5697A2653976743b752d82e80';
+const CONTRACT_ADDRESS = '0x20bC54A6AD65c2D2e24999aE4AA09D3361d1c4Cd';
 
 const SEPOLIA = {
   chainId: '0xaa36a7',   // 11155111 decimal
