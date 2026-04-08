@@ -53,5 +53,6 @@ const ABI = [
   'event CandidateApproved(uint256 indexed id)',
   'event VoteCast(address indexed voter, uint256 indexed candidateId, uint256 timestamp)',
   'event ElectionCreated(string title, uint256 start, uint256 end)',
-  'event ElectionEnded()'
+  'event ElectionEnded()',
+  'event AdminTransferred(address oldAdmin, address newAdmin)'
 ];
