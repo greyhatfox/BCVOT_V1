@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWEVOT — Secure Web-based E-Voting on the Blockchain</title>
-  <meta name="description" content="SWEVOT is a decentralized, tamper-proof e-voting platform powered by blockchain and MetaMask. Cast your vote with full transparency and anonymity." />
+  <title>D-VOTE — Secure Web-based E-Voting on the Blockchain</title>
+  <meta name="description" content="D-VOTE is a decentralized, tamper-proof e-voting platform powered by blockchain and MetaMask. Cast your vote with full transparency and anonymity." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -71,6 +71,38 @@
       letter-spacing: 0.3px;
     }
     .idx-theme-toggle:hover { background: var(--surface); border-color: var(--primary); color: var(--primary); }
+
+    /* Admin button on landing page */
+    .btn-admin-landing {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, rgba(239,35,60,0.12), rgba(193,18,31,0.08));
+      border: 1.5px solid rgba(239,35,60,0.45);
+      border-radius: 10px;
+      color: #ef233c;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      box-shadow: 0 0 12px rgba(239,35,60,0.12);
+      white-space: nowrap;
+    }
+    .btn-admin-landing:hover {
+      background: linear-gradient(135deg, rgba(239,35,60,0.22), rgba(193,18,31,0.16));
+      border-color: rgba(239,35,60,0.75);
+      box-shadow: 0 4px 20px rgba(239,35,60,0.28);
+      transform: translateY(-1px);
+      color: #ff4560;
+    }
+
+    /* Logo clickable */
+    .logo-link { text-decoration: none; cursor: pointer; }
+    .logo-link:hover .logo { opacity: 0.85; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -460,12 +492,20 @@
 
   <!-- NAV -->
   <header>
-    <div class="logo">S<span>W</span>EVOT</div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <a href="index.html" class="logo-link">
+      <div class="logo">D<span>-</span>VOTE</div>
+    </a>
+    <div style="display:flex;align-items:center;gap:14px">
       <div class="nav-badge">
         <span class="dot"></span>
         Blockchain-Secured Voting
       </div>
+      <a href="pages/admin.html" class="btn-admin-landing" id="btn-admin-landing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        ADMIN LOGIN
+      </a>
       <button class="idx-theme-toggle theme-toggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme">
         <span class="theme-toggle-icon">☀️</span>
         <span class="theme-toggle-label">Light</span>
@@ -544,7 +584,7 @@
       </a>
 
       <p class="lock-hint" id="lock-hint">
-        🔒 MetaMask is required to use SWEVOT
+        🔒 MetaMask is required to use D-VOTE
       </p>
     </div>
 
@@ -586,7 +626,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <span>© 2026 SWEVOT · Blockchain Voting System</span>
+    <span>© 2026 D-VOTE · Blockchain Voting System</span>
     <span>Built on <a href="https://ethereum.org" target="_blank">Ethereum Sepolia</a></span>
   </footer>
 
@@ -710,7 +750,7 @@
       if (isMetaMaskInstalled()) {
         clearInterval(poll);
         setInstalledState();
-        showToast('🎉 MetaMask Installed!', 'You can now continue to SWEVOT.');
+        showToast('🎉 MetaMask Installed!', 'You can now continue to D-VOTE.');
       }
       if (attempts > 90) clearInterval(poll);
     }, 2000);

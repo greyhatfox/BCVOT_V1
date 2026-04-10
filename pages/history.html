@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blockchain Voting System V2 – Transaction History</title>
+  <title>D-VOTE – Transaction History</title>
   <meta name="description" content="Full immutable transaction log for your blockchain votes. Every vote is permanently recorded on Sepolia." />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="../js/theme.js"></script>
@@ -12,7 +12,7 @@
 <body>
 
 <nav>
-  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <a href="../index.html" class="nav-brand">D-<span>VOTE</span></a>
   <div class="nav-links">
     <!-- populated by syncNav() in script.js -->
   </div>
@@ -47,11 +47,13 @@
   </div>
 
   <div class="main-content">
-    <div class="page-title">TRANSACTION HISTORY</div>
+    <div class="top-row">
+      <div class="page-title">TRANSACTION HISTORY</div>
+      <span id="block-display" style="font-size:0.78rem;color:var(--text3);font-weight:500;flex-shrink:0">Sepolia Testnet</span>
+    </div>
     <div class="card">
       <div class="card-header">
         <span class="card-title">All Transactions · Immutable Ledger</span>
-        <span id="block-display" style="font-size:0.75rem;color:var(--text3)">Sepolia Testnet</span>
       </div>
       <div class="card-body" style="padding:0">
         <!-- No results yet banner -->

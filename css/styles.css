@@ -116,7 +116,11 @@
     font-weight: 700;
     color: #fff;
     letter-spacing: 1px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
   }
+  .nav-brand:hover { opacity: 0.82; }
   .nav-brand span { color: var(--primary); }
 
   .nav-links {
@@ -240,11 +244,11 @@
 
   .page-title {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     color: var(--text);
-    margin-bottom: 24px;
+    flex-shrink: 0;
   }
 
   .search-bar {
@@ -265,14 +269,17 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    gap: 16px;
+    flex-wrap: wrap;
   }
 
   /* ──────────── DASHBOARD GRID ──────────── */
   .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1.4fr 1.3fr;
+    grid-template-columns: 280px 1fr 1fr;
     gap: 20px;
+    align-items: start;
   }
 
   /* ──────────── CARDS ──────────── */
@@ -340,7 +347,8 @@
   .info-value { font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
 
   .wallet-block {
-    background: linear-gradient(135deg, #0a1628, #0d2240);
+    background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 14px 16px;
     margin: 14px 0 12px;
@@ -496,15 +504,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 40px 20px;
   }
 
   .auth-card {
     background: var(--surface);
     border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
     padding: 48px 44px;
-    width: 420px;
+    width: 440px;
+    max-width: 100%;
     position: relative;
     overflow: hidden;
   }
@@ -656,8 +665,13 @@
     padding: 12px;
     border: 1px solid var(--border);
   }
-  .stat-val { font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); }
-  .stat-lbl { font-size: 0.72rem; color: var(--text3); font-weight: 500; }
+  .stat-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .stat-lbl { font-size: 0.72rem; color: var(--text3); font-weight: 500; margin-top: 2px; }
 
   /* ──────────── SUCCESS TOAST ──────────── */
   .toast {
@@ -713,7 +727,16 @@
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   /* ──────────── RESPONSIVE ──────────── */
+  @media (max-width: 1100px) {
+    .dashboard-grid { grid-template-columns: 260px 1fr; }
+    .dashboard-grid .card:nth-child(3) { grid-column: 1 / -1; }
+  }
   @media (max-width: 900px) {
     .dashboard-grid { grid-template-columns: 1fr; }
     .results-grid { grid-template-columns: 1fr; }
+    .main-content { padding: 20px 16px; }
+  }
+  @media (max-width: 600px) {
+    nav { padding: 0 16px; }
+    .auth-card { padding: 32px 24px; }
   }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blockchain Voting System V2 – Admin Dashboard</title>
+  <title>D-VOTE – Admin Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/styles.css" />
   <style>
@@ -25,7 +25,10 @@
       font-weight: 700;
       letter-spacing: 2px;
       color: #fff;
+      text-decoration: none;
+      transition: opacity 0.2s;
     }
+    .admin-brand:hover { opacity: 0.8; }
     .admin-brand span { color: #ef233c; }
     .admin-wallet-pill {
       display: flex;
@@ -184,7 +187,7 @@
 
 <!-- ── Top bar ── -->
 <div class="admin-topbar">
-  <div class="admin-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2 &nbsp;·&nbsp; <span style="color:rgba(255,255,255,0.4);font-size:0.85rem">ADMIN</span></div>
+  <a href="../index.html" class="admin-brand">D-<span>VOTE</span> &nbsp;·&nbsp; <span style="color:rgba(255,255,255,0.4);font-size:0.85rem">ADMIN</span></a>
   <div style="display:flex;align-items:center;gap:14px">
     <div class="admin-wallet-pill">🛡️ <span id="topbar-wallet">Loading…</span></div>
     <button class="logout-btn" onclick="adminLogout()">Logout</button>

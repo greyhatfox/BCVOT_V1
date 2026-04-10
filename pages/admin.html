@@ -3,12 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blockchain Voting System V2 – Admin Login</title>
+  <title>D-Vote – Admin Login</title>
   <meta name="description" content="Admin access portal for the blockchain voting system." />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/styles.css" />
   <style>
     body { background: #0a0e1a; }
+
+  /* D-VOTE brand link at top */
+  .admin-home-link {
+    position: fixed;
+    top: 18px;
+    left: 28px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .admin-home-link span { color: #00b4d8; }
+  .admin-home-link:hover { opacity: 1; }
 
     .admin-login-wrap {
       min-height: 100vh;
@@ -158,6 +176,7 @@
 <body>
 
 <div class="admin-login-wrap">
+  <a href="../index.html" class="admin-home-link">D-<span>VOTE</span></a>
   <div class="admin-card">
     <div class="shield-icon">🛡️</div>
 
@@ -187,6 +206,8 @@
 
     <div class="voter-link">
       Not an admin? <a href="auth.html">Voter login →</a>
+      &nbsp;·&nbsp;
+      <a href="../index.html" style="color:rgba(255,255,255,0.25)">← Home</a>
     </div>
   </div>
 </div>
