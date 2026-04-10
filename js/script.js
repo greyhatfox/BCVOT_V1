@@ -104,8 +104,8 @@ function syncNav(voter) {
       .slice(0, 2)
       .toUpperCase();
 
-    const statusLabel = voter.verified ? '● VERIFIED' : '● PENDING';
-    const statusColor = voter.verified ? 'var(--accent)' : '#f59e0b';
+    const statusLabel = '● VERIFIED';
+    const statusColor = 'var(--accent)';
     const walletShort = voter.wallet_address
       ? `${voter.wallet_address.slice(0,6)}…${voter.wallet_address.slice(-4)}`
       : '—';
