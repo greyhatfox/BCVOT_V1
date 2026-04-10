@@ -20,6 +20,26 @@ function formatAadhaar(el) {
   el.value = parts.join('-');
 }
 
+// ── Connect MetaMask for login ─────────────────────────────────
+let _authWallet = null;
+async function connectAuthWallet() {
+  if (!window.ethereum) {
+    showAuthError('⚠️ MetaMask not detected. Please install MetaMask.');
+    return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    _authWallet = accounts[0].toLowerCase();
+    const display = document.getElementById('auth-wallet-display');
+    const btn     = document.getElementById('auth-mm-btn');
+    if (display) display.textContent = `${_authWallet.slice(0,6)}…${_authWallet.slice(-4)}`;
+    if (display) display.style.color = 'var(--accent)';
+    if (btn)    { btn.textContent = '✅ Connected'; btn.style.color = 'var(--accent)'; }
+  } catch (e) {
+    showAuthError('🚫 MetaMask connection cancelled.');
+  }
+}
+
 // ── Show auth error ────────────────────────────────────────────
 function showAuthError(msg) {
   const errEl = document.getElementById('auth-error');
@@ -70,6 +90,11 @@ async function doAuth() {
     return;
   }
 
+  if (!_authWallet) {
+    showAuthError('⚠️ Please connect your MetaMask wallet before logging in.');
+    return;
+  }
+
   const btn = document.querySelector('.auth-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'VERIFYING…'; }
 
@@ -89,14 +114,28 @@ async function doAuth() {
 
     if (error || !data) {
       stopBiometricScan(false);
-      showAuthError('❌ Aadhaar not registered in the system. Please contact your local election office.');
+      showAuthError('❌ Aadhaar not registered in the system.');
       if (btn) { btn.disabled = false; btn.textContent = 'VERIFY & CONTINUE'; }
       return;
     }
 
-    // Store voter profile in sessionStorage (no sensitive info — just public profile data)
-    sessionStorage.setItem('voter', JSON.stringify(data));
+    // ── Wallet check: connected wallet must match the registered wallet ──
+    if (!data.wallet_address) {
+      stopBiometricScan(false);
+      showAuthError('❌ No wallet linked to this Aadhaar. Please re-register with your MetaMask wallet.');
+      if (btn) { btn.disabled = false; btn.textContent = 'VERIFY & CONTINUE'; }
+      return;
+    }
 
+    if (data.wallet_address.toLowerCase() !== _authWallet) {
+      stopBiometricScan(false);
+      showAuthError('❌ Wallet mismatch. The connected MetaMask account does not match the wallet registered with this Aadhaar.');
+      if (btn) { btn.disabled = false; btn.textContent = 'VERIFY & CONTINUE'; }
+      return;
+    }
+
+    // ── Both checks passed — grant access ──
+    sessionStorage.setItem('voter', JSON.stringify(data));
     stopBiometricScan(true);
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
 
