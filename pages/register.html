@@ -212,11 +212,156 @@
 <div style="flex:1;background:linear-gradient(135deg,#e8f4f8,#f0f8fc,#e8f0f8);display:flex;align-items:center;justify-content:center;padding:40px 20px;">
   <div class="reg-card">
 
-    <!-- ── Tabs ── -->
-    <div class="reg-tabs">
-      <button class="reg-tab active" id="tab-voter"     onclick="switchTab('voter')">🗳️ VOTER REGISTRATION</button>
-      <button class="reg-tab"        id="tab-candidate" onclick="switchTab('candidate')">🏆 CANDIDATE APPLICATION</button>
+    <div class="reg-body">
+
+      <!-- ── Shared messages ── -->
+      <div class="reg-msg" id="reg-error"></div>
+      <div class="reg-msg" id="reg-success"></div>
+
+      <!-- ════════════════════════════════════════════════════
+           UNIFIED REGISTRATION FORM
+           ════════════════════════════════════════════════════ -->
+      <div style="text-align:center;margin-bottom:22px">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:2px;color:var(--text1)">VOTER REGISTRATION</div>
+        <div style="font-size:0.78rem;color:var(--text3);margin-top:4px">Register as a voter — and optionally apply to run as a candidate</div>
+      </div>
+
+      <div class="reg-section-label">Personal Information</div>
+
+      <div class="input-group">
+        <label class="input-label" for="voter-name">Full Name</label>
+        <input type="text" id="voter-name" class="input-field"
+               placeholder="Full legal name" style="letter-spacing:0" />
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="voter-aadhaar">12-Digit Aadhaar Number</label>
+        <input type="text" id="voter-aadhaar" class="input-field"
+               placeholder="XXXX-XXXX-XXXX" maxlength="14"
+               oninput="formatAadhaar(this)" />
+      </div>
+
+      <div class="input-group">
+        <label class="input-label" for="voter-constituency">Constituency Number</label>
+        <input type="number" id="voter-constituency" class="input-field"
+               placeholder="e.g. 1" min="1" style="letter-spacing:0" />
+      </div>
+
+      <div class="reg-section-label" style="margin-top:20px">Wallet Binding <span style="color:var(--accent);font-size:0.65rem;font-weight:600">REQUIRED TO VOTE</span></div>
+
+      <div class="wallet-row">
+        <div class="input-group">
+          <label class="input-label" for="wallet-input">MetaMask Wallet Address</label>
+          <input type="text" id="wallet-input" class="input-field"
+                 placeholder="0x… — click Auto-Fill to connect MetaMask"
+                 style="font-size:0.78rem" />
+        </div>
+        <button class="mm-btn" id="connect-mm-btn" onclick="connectMetaMask()">🦊 Auto-Fill</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text3);margin-top:-12px;margin-bottom:22px">
+        Connecting your wallet will automatically register you on the blockchain so you can vote immediately.
+      </div>
+
+      <!-- ── Candidate toggle ── -->
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px">
+        <div id="cand-toggle-header"
+             onclick="toggleCandidateSection()"
+             style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:rgba(0,180,216,0.03);user-select:none;transition:background 0.2s">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:1.1rem">🏆</span>
+            <div>
+              <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.88rem;letter-spacing:1px;color:var(--text1)">ALSO APPLY AS A CANDIDATE?</div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-top:2px">Optional — uses your name &amp; wallet above</div>
+            </div>
+          </div>
+          <div id="cand-toggle-arrow" style="color:var(--text3);font-size:1.1rem;transition:transform 0.25s">▸</div>
+        </div>
+
+        <div id="cand-section" style="display:none;padding:18px;border-top:1px solid var(--border);background:rgba(0,180,216,0.02)">
+          <div class="pending-note" style="margin-bottom:16px">
+            ⚠️ <strong>Candidate applications require admin approval</strong> before appearing on the ballot. Your name and wallet address above will be used automatically.
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="cand-party">Party / Alliance Name</label>
+            <input type="text" id="cand-party" class="input-field"
+                   placeholder="e.g. Progressive Party" style="letter-spacing:0" />
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="cand-symbol">Party Symbol (emoji)</label>
+            <input type="text" id="cand-symbol" class="input-field"
+                   placeholder="Click a symbol below or type your own"
+                   style="font-size:1.2rem;letter-spacing:4px" maxlength="4" />
+            <div class="symbol-row" id="symbol-picker" style="margin-top:8px">
+              <div class="sym-chip" onclick="pickSymbol('🌿')">🌿</div>
+              <div class="sym-chip" onclick="pickSymbol('⭐')">⭐</div>
+              <div class="sym-chip" onclick="pickSymbol('🔥')">🔥</div>
+              <div class="sym-chip" onclick="pickSymbol('💪')">💪</div>
+              <div class="sym-chip" onclick="pickSymbol('🌙')">🌙</div>
+              <div class="sym-chip" onclick="pickSymbol('🦁')">🦁</div>
+              <div class="sym-chip" onclick="pickSymbol('🌸')">🌸</div>
+              <div class="sym-chip" onclick="pickSymbol('⚡')">⚡</div>
+              <div class="sym-chip" onclick="pickSymbol('🕊️')">🕊️</div>
+              <div class="sym-chip" onclick="pickSymbol('∞')">∞</div>
+              <div class="sym-chip" onclick="pickSymbol('🏛️')">🏛️</div>
+              <div class="sym-chip" onclick="pickSymbol('🌐')">🌐</div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="cand-election">Election to Contest</label>
+            <select id="cand-election" class="input-field" style="letter-spacing:0;cursor:pointer">
+              <option value="">Loading elections…</option>
+            </select>
+          </div>
+
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label" for="cand-manifesto">Brief Manifesto / Vision (optional)</label>
+            <textarea id="cand-manifesto" class="input-field"
+                      placeholder="Describe your vision in 2–3 sentences…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button class="reg-btn reg-btn-voter" id="voter-submit-btn" onclick="registerVoter()">
+        REGISTER AS VOTER
+      </button>
+
+      <div class="login-link">
+        Already registered? <a href="auth.html">Log in here</a>
+      </div>
     </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/register.js"></script>
+<script>
+  function toggleCandidateSection() {
+    const sec   = document.getElementById('cand-section');
+    const arrow = document.getElementById('cand-toggle-arrow');
+    const hdr   = document.getElementById('cand-toggle-header');
+    const open  = sec.style.display === 'none';
+    sec.style.display  = open ? 'block' : 'none';
+    arrow.textContent  = open ? '▾' : '▸';
+    arrow.style.transform = open ? 'rotate(0deg)' : '';
+    hdr.style.background  = open ? 'rgba(0,180,216,0.06)' : 'rgba(0,180,216,0.03)';
+    if (open) loadElectionsForDropdown();
+  }
+
+  function pickSymbol(sym) {
+    document.getElementById('cand-symbol').value = sym;
+    document.querySelectorAll('.sym-chip').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+  }
+</script>
+</body>
+</html>
+
 
     <div class="reg-body">
 

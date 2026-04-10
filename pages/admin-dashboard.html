@@ -417,7 +417,7 @@ async function registerVoterOnChain(wallet, btn) {
 // ══════════════════════════════════════════════════════════════
 async function loadCandidates() {
   const { data: cands, error } = await _db
-    .from('candidates').select('*, elections(title)').order('approved').order('id');
+    .from('candidates').select('*').order('approved').order('id');
   const tbody = document.getElementById('cands-tbody');
 
   if (error || !cands || cands.length === 0) {
@@ -434,21 +434,21 @@ async function loadCandidates() {
   tbody.innerHTML = '';
   cands.forEach(c => {
     const row = document.createElement('tr');
-    const elTitle = c.elections?.title?.split('·')[0]?.trim() || `Election #${c.election_id}`;
+    if (!c.approved) row.style.background = 'rgba(255,190,11,0.04)';
     row.innerHTML = `
       <td style="color:#fff;font-weight:600">${c.name}</td>
       <td>${c.party}</td>
       <td style="font-size:1.2rem">${c.symbol || '—'}</td>
-      <td style="font-size:0.78rem;color:rgba(255,255,255,0.5)">${elTitle}</td>
+      <td style="font-size:0.78rem;color:rgba(255,255,255,0.5)">Election #${c.election_id}</td>
       <td>
         ${c.approved
           ? '<span class="badge badge-green">APPROVED</span>'
-          : '<span class="badge badge-yellow">PENDING</span>'}
+          : '<span class="badge badge-yellow">⏳ PENDING</span>'}
       </td>
       <td>
         ${!c.approved
-          ? `<button class="action-btn btn-approve" onclick="approveCandidate(${c.id}, this)">
-               ✓ Approve
+          ? `<button class="action-btn btn-approve" id="approve-btn-${c.id}" onclick="approveCandidate(${c.id}, this)">
+               ✓ Approve for Ballot
              </button>`
           : `<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>`}
       </td>`;

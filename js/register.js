@@ -1,5 +1,5 @@
-// js/register.js — Voter & Candidate Registration
-// Depends on: config.js, supabase-js CDN, script.js (for formatAadhaar, populateNav)
+// js/register.js — Unified Voter (+ optional Candidate) Registration
+// Depends on: config.js, supabase-js CDN, ethers.js CDN, script.js
 
 const _sbReg = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
 
@@ -9,15 +9,6 @@ async function sha256(message) {
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
   const hashArray  = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// ── Tab switching ──────────────────────────────────────────────
-function switchTab(tab) {
-  ['voter', 'candidate'].forEach(t => {
-    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
-    document.getElementById(`form-${t}`).style.display = t === tab ? 'block' : 'none';
-  });
-  hideMessages();
 }
 
 // ── Message helpers ────────────────────────────────────────────
@@ -57,8 +48,14 @@ async function connectMetaMask() {
   }
 }
 
+// ── Helper: is candidate section open? ───────────────────────
+function isCandidateSectionOpen() {
+  const sec = document.getElementById('cand-section');
+  return sec && sec.style.display !== 'none';
+}
+
 // ══════════════════════════════════════════════════════════════════
-//  VOTER REGISTRATION
+//  UNIFIED REGISTRATION  (voter + optional candidate)
 // ══════════════════════════════════════════════════════════════════
 async function registerVoter() {
   const name         = document.getElementById('voter-name').value.trim();
@@ -66,14 +63,23 @@ async function registerVoter() {
   const constituency = parseInt(document.getElementById('voter-constituency').value);
   const wallet       = document.getElementById('wallet-input').value.trim();
 
+  const applyAsCandidate = isCandidateSectionOpen();
+  const party     = applyAsCandidate ? document.getElementById('cand-party').value.trim()  : '';
+  const symbol    = applyAsCandidate ? document.getElementById('cand-symbol').value.trim() : '';
+  const elecId    = applyAsCandidate ? parseInt(document.getElementById('cand-election').value) : null;
+  const manifesto = applyAsCandidate ? document.getElementById('cand-manifesto').value.trim() : '';
+
   // ── Validation ──
   if (!name)                          { showRegError('⚠️ Please enter your full name.'); return; }
   if (aadhaarRaw.length !== 12)       { showRegError('⚠️ Enter a valid 12-digit Aadhaar number.'); return; }
   if (!/^\d{12}$/.test(aadhaarRaw))   { showRegError('⚠️ Aadhaar must contain exactly 12 digits.'); return; }
   if (!constituency || isNaN(constituency) || constituency < 1) { showRegError('⚠️ Enter a valid constituency number.'); return; }
+  if (applyAsCandidate && !party)     { showRegError('⚠️ Please enter a party name to apply as a candidate.'); return; }
+  if (applyAsCandidate && !elecId)    { showRegError('⚠️ Please select an election to contest.'); return; }
 
   const btn = document.getElementById('voter-submit-btn');
-  btn.disabled = true; btn.textContent = 'REGISTERING…';
+  btn.disabled = true;
+  btn.textContent = 'REGISTERING…';
   hideMessages();
 
   try {
@@ -86,7 +92,7 @@ async function registerVoter() {
       return;
     }
 
-    // ── Build insert payload ──
+    // ── Build voter payload ──
     const payload = {
       aadhaar_hash:  hash,
       name,
@@ -98,8 +104,8 @@ async function registerVoter() {
       payload.wallet_address = wallet.toLowerCase();
     }
 
-    const { error } = await _sbReg.from('voters').insert(payload);
-    if (error) throw error;
+    const { error: voterErr } = await _sbReg.from('voters').insert(payload);
+    if (voterErr) throw voterErr;
 
     // ── Register wallet on-chain via selfRegister() ──
     if (wallet && /^0x[0-9a-fA-F]{40}$/.test(wallet) && window.ethereum) {
@@ -108,8 +114,6 @@ async function registerVoter() {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer   = await provider.getSigner();
         const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, signer);
-
-        // Check if already registered on-chain (e.g. re-registration attempt)
         const alreadyRegistered = await contract.registeredVoters(await signer.getAddress());
         if (!alreadyRegistered) {
           const tx = await contract.selfRegister();
@@ -117,7 +121,6 @@ async function registerVoter() {
           await tx.wait();
         }
       } catch (chainErr) {
-        // Non-fatal: voter is saved in Supabase; warn but don't block
         console.warn('[Register] On-chain selfRegister failed:', chainErr);
         showRegError(
           '⚠️ Saved to database but blockchain registration failed: ' +
@@ -129,15 +132,40 @@ async function registerVoter() {
       }
     }
 
-    showRegSuccess(
-      `✅ <strong>Registration successful!</strong> Welcome, ${name}.<br>
-       <span style="font-size:0.8rem;opacity:0.8">Your wallet is registered on-chain. Redirecting to login…</span>`,
-      'auth.html'
-    );
+    // ── Submit candidate application (if toggled) ──
+    if (applyAsCandidate) {
+      btn.textContent = 'SUBMITTING CANDIDATE APPLICATION…';
+      const candPayload = {
+        name,                       // same name as voter
+        party,
+        symbol:      symbol || '🏛️',
+        election_id: elecId,
+        approved:    false          // admin must approve
+      };
+      if (wallet && /^0x[0-9a-fA-F]{40}$/.test(wallet)) {
+        candPayload.wallet_address = wallet.toLowerCase();
+      }
+      const { error: candErr } = await _sbReg.from('candidates').insert(candPayload);
+      if (candErr) {
+        console.warn('[Register] Candidate insert failed:', candErr);
+        // Non-fatal: voter already saved — continue
+      }
+    }
 
-    // Clear fields
-    ['voter-name','voter-aadhaar','voter-constituency','wallet-input'].forEach(id => {
-      document.getElementById(id).value = '';
+    const successMsg = applyAsCandidate
+      ? `✅ <strong>Registration successful!</strong> Welcome, ${name}.<br>
+         <span style="font-size:0.8rem;opacity:0.8">
+           Wallet registered on-chain. Candidate application submitted — <strong>pending admin approval</strong>.<br>
+           Redirecting to login…
+         </span>`
+      : `✅ <strong>Registration successful!</strong> Welcome, ${name}.<br>
+         <span style="font-size:0.8rem;opacity:0.8">Your wallet is registered on-chain. Redirecting to login…</span>`;
+
+    showRegSuccess(successMsg, 'auth.html');
+
+    ['voter-name','voter-aadhaar','voter-constituency','wallet-input','cand-party','cand-symbol','cand-manifesto'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
     });
 
   } catch (err) {
@@ -148,55 +176,8 @@ async function registerVoter() {
       showRegError('Registration failed: ' + (err.message || 'Unknown error'));
     }
   } finally {
-    btn.disabled = false; btn.textContent = 'REGISTER AS VOTER';
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════
-//  CANDIDATE REGISTRATION
-// ══════════════════════════════════════════════════════════════════
-async function registerCandidate() {
-  const name       = document.getElementById('cand-name').value.trim();
-  const party      = document.getElementById('cand-party').value.trim();
-  const symbol     = document.getElementById('cand-symbol').value.trim() || '🏛️';
-  const electionId = parseInt(document.getElementById('cand-election').value);
-  const manifesto  = document.getElementById('cand-manifesto').value.trim();
-
-  if (!name)       { showRegError('⚠️ Please enter your full name.'); return; }
-  if (!party)      { showRegError('⚠️ Please enter your party name.'); return; }
-  if (!electionId) { showRegError('⚠️ Please select an election to contest.'); return; }
-
-  const btn = document.getElementById('cand-submit-btn');
-  btn.disabled = true; btn.textContent = 'SUBMITTING APPLICATION…';
-  hideMessages();
-
-  try {
-    const { error } = await _sbReg.from('candidates').insert({
-      name,
-      party,
-      symbol,
-      election_id: electionId,
-      approved:    false   // Requires admin approval
-    });
-    if (error) throw error;
-
-    showRegSuccess(
-      `✅ <strong>Application submitted!</strong><br>
-       <span style="font-size:0.8rem;opacity:0.8">
-         ${name} (${party} ${symbol}) — Application is <strong>PENDING ADMIN APPROVAL</strong>.<br>
-         You will appear on the ballot once approved.
-       </span>`
-    );
-
-    ['cand-name','cand-party','cand-symbol','cand-manifesto'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-
-  } catch (err) {
-    console.error('[Register Candidate]', err);
-    showRegError('Submission failed: ' + (err.message || 'Unknown error'));
-  } finally {
-    btn.disabled = false; btn.textContent = 'APPLY AS CANDIDATE';
+    btn.disabled = false;
+    btn.textContent = 'REGISTER AS VOTER';
   }
 }
 
@@ -208,21 +189,21 @@ async function loadElectionsForDropdown() {
     .order('id', { ascending: true });
 
   const sel = document.getElementById('cand-election');
+  if (!sel) return;
   if (error || !elections || elections.length === 0) {
     sel.innerHTML = '<option value="">No elections available</option>';
     return;
   }
   sel.innerHTML = `<option value="">Select election to contest…</option>` +
     elections.map(e => {
-      const label   = e.title.split('·')[0].trim();
-      const closed  = e.status === 'closed';
+      const label  = e.title.split('·')[0].trim();
+      const closed = e.status === 'closed';
       return `<option value="${e.id}" ${closed ? 'disabled' : ''}>${label}${closed ? ' (CLOSED)' : ''}</option>`;
     }).join('');
 }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  loadElectionsForDropdown();
   const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
   if (voter) populateNav(voter);
 });
