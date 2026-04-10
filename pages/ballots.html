@@ -74,23 +74,38 @@
 <script>
 // ── Load elections from Supabase ────────────────────────────
 (async function loadElections() {
-  const db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  const db   = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  const grid = document.getElementById('elections-grid');
+
+  // Fetch elections (simple query — no join)
   const { data: elections, error } = await db
     .from('elections')
-    .select('*, candidates(count)')
+    .select('*')
     .order('id', { ascending: true });
 
-  const grid = document.getElementById('elections-grid');
   if (error || !elections || elections.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">No elections found. Please run the seed SQL.</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">
+      No elections found. Please run the seed SQL in Supabase.<br>
+      <small style="color:var(--danger);font-family:monospace;font-size:0.75rem">${error ? error.message : 'Empty table'}</small>
+    </div>`;
     return;
   }
 
+  // Fetch candidate counts separately per election
+  const { data: candidateRows } = await db
+    .from('candidates')
+    .select('election_id');
+
+  const countMap = {};
+  (candidateRows || []).forEach(c => {
+    countMap[c.election_id] = (countMap[c.election_id] || 0) + 1;
+  });
+
   grid.innerHTML = '';
   elections.forEach(el => {
-    const isActive    = el.status === 'active';
-    const endDate     = el.end_date ? new Date(el.end_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
-    const candidateCount = el.candidates?.[0]?.count ?? '—';
+    const isActive       = el.status === 'active';
+    const endDate        = el.end_date ? new Date(el.end_date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '—';
+    const candidateCount = countMap[el.id] ?? 0;
 
     const card = document.createElement('div');
     card.className = 'card';
