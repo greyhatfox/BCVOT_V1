@@ -464,20 +464,38 @@ async function approveCandidate(id, btn) {
   btn.disabled = true;
   btn.textContent = 'Connecting…';
 
-  // 1. Fetch candidate details from Supabase
+  // 1. Fetch candidate details & joined election title from Supabase
   const { data: cand, error: fetchErr } = await _db
-    .from('candidates').select('name, party, election_id').eq('id', id).single();
+    .from('candidates')
+    .select('name, party, election_id, elections(title)')
+    .eq('id', id)
+    .single();
+
   if (fetchErr || !cand) {
     adminToast('❌ Could not fetch candidate details.');
     btn.disabled = false; btn.textContent = '✓ Approve for Ballot';
     return;
   }
 
-  // 2. Call addCandidate() on-chain (admin signs tx)
-  let onchainId;
+  let onchainId = null;
   try {
-    btn.textContent = 'Awaiting Signature…';
     const contract = await getAdminContract();
+
+    // 2. Ensure the election exists on-chain; if not, create it on the fly
+    btn.textContent = 'Checking Chain…';
+    const electionOnChain = await contract.elections(cand.election_id);
+    if (Number(electionOnChain.id) === 0) {
+      adminToast('⚡ Initializing Election on Blockchain first...');
+      btn.textContent = 'Init Election…';
+      const title = cand.elections ? cand.elections.title : `Election #${cand.election_id}`;
+      // default duration 365 days (31536000 seconds), empty candidate arrays
+      const txElec = await contract.createElection(title, 31536000, [], []);
+      await txElec.wait();
+      adminToast('✅ Election initialized on-chain.');
+    }
+
+    // 3. Call addCandidate() on-chain
+    btn.textContent = 'Awaiting Signature…';
     const tx = await contract.addCandidate(cand.election_id, cand.name, cand.party);
     btn.textContent = 'Confirming on Chain…';
     const receipt = await tx.wait();
