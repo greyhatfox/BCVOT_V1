@@ -95,7 +95,8 @@ async function loadCandidates(voter) {
     const card = document.createElement('div');
     card.className = 'candidate-card';
     card.id = `cand-${c.id}`;
-    card.dataset.candidateId = c.id;
+    card.dataset.candidateId = c.id;       // Supabase id (UI reference only)
+    card.dataset.chainCandidateId = i + 1; // on-chain id (1-based position)
     card.innerHTML = `
       <div class="candidate-photo">${CANDIDATE_AVATARS[i % CANDIDATE_AVATARS.length]}</div>
       <div class="candidate-info">
@@ -106,7 +107,8 @@ async function loadCandidates(voter) {
     `;
     card.addEventListener('click', () => {
       if (voter.has_voted) return;
-      selectCandidate(card, c.id);
+      // Store both ids: chain id for the contract call, db id for UI
+      selectCandidate(card, c.id, i + 1);
     });
     container.appendChild(card);
   });
@@ -253,7 +255,10 @@ async function castVote() {
     updateBtn('AWAITING SIGNATURE…');
     const signer   = await provider.getSigner();
     const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, signer);
-    const tx       = await contract.castVote(CONFIG.electionId, window.selectedCandidateId);
+    // Use the on-chain 1-based candidate index, NOT the Supabase DB id
+    const chainCandId = window.selectedChainCandidateId || window.selectedCandidateId;
+    console.log('[Vote] Supabase candidateId:', window.selectedCandidateId, '→ on-chain candidateId:', chainCandId);
+    const tx       = await contract.castVote(CONFIG.electionId, chainCandId);
 
     updateBtn('CONFIRMING ON BLOCKCHAIN…');
     const receipt = await tx.wait();
@@ -298,13 +303,17 @@ async function castVote() {
 
   } catch (err) {
     console.error('[Vote] Error:', err);
-    let msg = 'Transaction failed. Please try again.';
+    // Try to surface the actual revert reason from the contract
+    const reason = err?.reason || err?.data?.message || err?.error?.message || err?.message || '';
+    console.error('[Vote] Revert reason:', reason);
+    let msg = 'Transaction failed. Please try again.\n\nReason: ' + (reason || 'Unknown');
     if (err.code === 4001 || err.code === 'ACTION_REJECTED')        msg = '🚫 Transaction cancelled by user.';
-    else if (err.message?.includes('Already voted'))                 msg = '⚠️ You have already voted on this election.';
-    else if (err.message?.includes('Not registered'))                msg = '⚠️ Your wallet is not registered with the contract. Ask admin to call registerVoter().';
-    else if (err.message?.includes('Election not active'))           msg = '⚠️ This election is no longer active.';
-    else if (err.message?.includes('Election ended'))                msg = '⚠️ The voting period for this election has ended.';
-    else if (err.message?.includes('insufficient funds'))            msg = '⚠️ Insufficient ETH for gas fees. Please top up your Sepolia wallet.';
+    else if (reason.includes('Already voted') || reason.includes('already voted'))  msg = '⚠️ You have already voted on this election.';
+    else if (reason.includes('Not registered') || reason.includes('not registered')) msg = '⚠️ Your wallet is not registered with the contract.\n\nFix: Ask admin to call registerVoter() with your wallet address in Remix.';
+    else if (reason.includes('Invalid candidate'))                   msg = '⚠️ Invalid candidate ID sent to contract. Please refresh the page and try again.';
+    else if (reason.includes('Election not active'))                 msg = '⚠️ This election is no longer active.';
+    else if (reason.includes('Election ended'))                      msg = '⚠️ The voting period for this election has ended.';
+    else if (reason.includes('insufficient funds'))                  msg = '⚠️ Insufficient ETH for gas fees. Please top up your Sepolia wallet.';
     alert(msg);
     if (btn) { btn.disabled = false; updateBtn('CAST VOTE'); }
   } finally {

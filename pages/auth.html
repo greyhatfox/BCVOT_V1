@@ -37,8 +37,8 @@
 
       <div class="input-group" style="margin-bottom:6px">
         <label class="input-label">MetaMask Wallet</label>
-        <div style="display:flex;gap:10px;align-items:center">
-          <div id="auth-wallet-display" class="input-field" style="flex:1;font-size:0.78rem;color:var(--text3);cursor:default">Not connected</div>
+        <div style="display:flex;gap:10px;align-items:center;min-width:0">
+          <div id="auth-wallet-display" class="input-field" style="flex:1;min-width:0;font-size:0.78rem;color:var(--text3);cursor:default;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Not connected</div>
           <button type="button" id="auth-mm-btn"
                   onclick="connectAuthWallet()"
                   style="flex-shrink:0;height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:rgba(0,180,216,0.06);color:var(--primary);font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.5px;cursor:pointer;white-space:nowrap;transition:all 0.2s">

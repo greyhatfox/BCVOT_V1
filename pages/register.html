@@ -45,8 +45,13 @@
       background: var(--border);
     }
 
-    .wallet-row { display: flex; gap: 10px; align-items: flex-end; }
-    .wallet-row .input-group { flex: 1; margin-bottom: 0; }
+    .wallet-row { display: flex; gap: 10px; align-items: flex-end; min-width: 0; }
+    .wallet-row .input-group { flex: 1; margin-bottom: 0; min-width: 0; }
+    .wallet-row .input-group .input-field {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .mm-btn {
       flex-shrink: 0;
       height: 44px;

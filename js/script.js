@@ -19,9 +19,10 @@ function formatAadhaar(el) {
 }
 
 // ── Candidate card selection ──────────────────────────────────────
-window.selectedCandidateId = null;
+window.selectedCandidateId      = null;
+window.selectedChainCandidateId = null;
 
-function selectCandidate(el, candidateId) {
+function selectCandidate(el, candidateId, chainCandidateId) {
   document.querySelectorAll('.candidate-card').forEach(c => {
     c.classList.remove('selected');
     const chk = c.querySelector('.selected-check');
@@ -32,7 +33,10 @@ function selectCandidate(el, candidateId) {
   check.className = 'selected-check';
   check.textContent = '✓';
   el.appendChild(check);
-  window.selectedCandidateId = candidateId;
+  window.selectedCandidateId      = candidateId;      // Supabase DB id
+  window.selectedChainCandidateId = chainCandidateId !== undefined
+    ? chainCandidateId
+    : Number(el.dataset.chainCandidateId) || candidateId;  // on-chain 1-based index
 }
 
 // ── Toast notification ────────────────────────────────────────────
