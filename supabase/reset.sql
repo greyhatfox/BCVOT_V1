@@ -96,17 +96,14 @@ CREATE POLICY "public_read_transactions" ON transactions FOR SELECT USING (true)
 CREATE POLICY "public_read_voters"       ON voters       FOR SELECT USING (true);
 
 -- Registration / voting writes (anon key)
+CREATE POLICY "public_insert_elections"    ON elections    FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_insert_voters"       ON voters       FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_update_voters"       ON voters       FOR UPDATE USING (true);
 CREATE POLICY "public_insert_candidates"   ON candidates   FOR INSERT WITH CHECK (true);
 CREATE POLICY "public_update_candidates"   ON candidates   FOR UPDATE USING (true);
 CREATE POLICY "public_insert_transactions" ON transactions FOR INSERT WITH CHECK (true);
 
--- ================================================================
--- SEED: Elections only (candidates + voters come from the website)
--- ================================================================
-INSERT INTO elections (title, constituency, status, end_date) VALUES
-  ('National Election 2026 · Parliamentary Seat · Constituency 42', 42, 'active', '2026-12-31 23:59:59+00');
+
 
 -- ================================================================
 -- VERIFY
