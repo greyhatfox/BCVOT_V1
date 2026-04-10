@@ -3,10 +3,665 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blockchain Voting System V2</title>
-  <meta http-equiv="refresh" content="0; url=pages/auth.html" />
+  <title>SWEVOT — Secure Web-based E-Voting on the Blockchain</title>
+  <meta name="description" content="SWEVOT is a decentralized, tamper-proof e-voting platform powered by blockchain and MetaMask. Cast your vote with full transparency and anonymity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #00b4d8;
+      --primary-dark: #0077b6;
+      --accent: #06d6a0;
+      --accent2: #118ab2;
+      --bg-deep: #050d1a;
+      --bg-dark: #0a1628;
+      --surface: rgba(255,255,255,0.04);
+      --surface2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.1);
+      --text: #f0f6ff;
+      --text2: #a8bbd4;
+      --text3: #5a7a99;
+      --glow: rgba(0,180,216,0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND CANVAS ── */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .landing {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── NAVBAR ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      background: rgba(5,13,26,0.6);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+    .logo span { color: var(--primary); }
+
+    .nav-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--text2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+    }
+    .nav-badge .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* ── HERO SECTION ── */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,180,216,0.08);
+      border: 1px solid rgba(0,180,216,0.25);
+      border-radius: 24px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+    .hero-title .highlight {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.08rem;
+      color: var(--text2);
+      max-width: 600px;
+      line-height: 1.7;
+      margin-bottom: 48px;
+      animation: fadeUp 0.7s ease 0.2s both;
+    }
+
+    /* ── FEATURE PILLS ── */
+    .feature-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 52px;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      color: var(--text2);
+      font-weight: 500;
+    }
+    .feature-pill .icon { font-size: 1rem; }
+
+    /* ── CTA BUTTONS ── */
+    .cta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      animation: fadeUp 0.7s ease 0.4s both;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .btn-metamask {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #f6851b, #e2761b);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 8px 28px rgba(246,133,27,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-metamask::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    }
+    .btn-metamask:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(246,133,27,0.45); }
+    .btn-metamask:active { transform: translateY(0); }
+    .btn-metamask.installed {
+      background: linear-gradient(135deg, rgba(6,214,160,0.2), rgba(6,214,160,0.1));
+      border: 1px solid rgba(6,214,160,0.4);
+      color: var(--accent);
+      box-shadow: 0 4px 16px rgba(6,214,160,0.15);
+      cursor: default;
+    }
+    .btn-metamask.installed:hover { transform: none; }
+
+    .metamask-logo {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .btn-continue {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 8px 28px rgba(0,180,216,0.3);
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-continue::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    }
+    .btn-continue:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,180,216,0.45); }
+    .btn-continue:active { transform: translateY(0); }
+    .btn-continue.locked {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .lock-hint {
+      font-size: 0.75rem;
+      color: var(--text3);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 0.3s;
+    }
+    .lock-hint.hidden { opacity: 0; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-section {
+      border-top: 1px solid var(--border);
+      padding: 60px 48px;
+      background: rgba(10,22,40,0.6);
+      backdrop-filter: blur(12px);
+    }
+
+    .steps-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--primary);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .section-heading {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text);
+      margin-bottom: 40px;
+      letter-spacing: 0.5px;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .step-card:hover {
+      border-color: rgba(0,180,216,0.4);
+      transform: translateY(-3px);
+    }
+    .step-num {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+    .step-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .step-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .step-desc {
+      font-size: 0.82rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text3);
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--bg-dark);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: #fff;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      max-width: 300px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast .toast-title { font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+    #toast .toast-body { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      .hero { padding: 60px 20px 40px; }
+      .steps-section { padding: 40px 20px; }
+      footer { flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to <a href="pages/auth.html">Blockchain Voting System V2</a>…</p>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="landing">
+
+  <!-- NAV -->
+  <header>
+    <div class="logo">S<span>W</span>EVOT</div>
+    <div class="nav-badge">
+      <span class="dot"></span>
+      Blockchain-Secured Voting
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="hero-eyebrow">
+      ⛓️ Powered by Ethereum &amp; MetaMask
+    </div>
+
+    <h1 class="hero-title">
+      Democracy,<br/>
+      <span class="highlight">Secured on Chain.</span>
+    </h1>
+
+    <p class="hero-sub">
+      SWEVOT is a tamper-proof, decentralized e-voting platform. Every vote is 
+      cryptographically sealed on the Ethereum blockchain — transparent to all, 
+      anonymous to everyone.
+    </p>
+
+    <div class="feature-row">
+      <div class="feature-pill"><span class="icon">🛡️</span> Tamper-Proof Votes</div>
+      <div class="feature-pill"><span class="icon">🕵️</span> Voter Anonymity</div>
+      <div class="feature-pill"><span class="icon">🔗</span> On-Chain Audit Trail</div>
+      <div class="feature-pill"><span class="icon">⚡</span> Real-Time Results</div>
+      <div class="feature-pill"><span class="icon">🦊</span> MetaMask Identity</div>
+    </div>
+
+    <div class="cta-group">
+      <!-- MetaMask button -->
+      <button class="btn-metamask" id="btn-metamask" onclick="handleMetaMask()">
+        <!-- Inline MetaMask fox SVG -->
+        <svg class="metamask-logo" viewBox="0 0 318.6 318.6" xmlns="http://www.w3.org/2000/svg">
+          <polygon fill="#E2761B" stroke="#E2761B" stroke-linecap="round" stroke-linejoin="round" points="274.1,35.5 174.6,109.4 193,65.8"/>
+          <polygon fill="#E4761B" stroke="#E4761B" stroke-linecap="round" stroke-linejoin="round" points="44.4,35.5 143.1,110.1 125.6,65.8"/>
+          <polygon fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" points="238.3,206.8 211.8,247.4 268.5,263 284.8,207.7"/>
+          <polygon fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" points="33.9,207.7 50.1,263 106.8,247.4 80.3,206.8"/>
+          <polygon fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" points="103.6,138.2 87.8,162.1 144.1,164.6 142.1,104.1"/>
+          <polygon fill="#D7C1B3" stroke="#D7C1B3" stroke-linecap="round" stroke-linejoin="round" points="214.9,138.2 175.9,103.4 174.6,164.6 230.8,162.1"/>
+          <polygon fill="#233447" stroke="#233447" stroke-linecap="round" stroke-linejoin="round" points="106.8,247.4 140.6,230.9 111.4,208.1"/>
+          <polygon fill="#233447" stroke="#233447" stroke-linecap="round" stroke-linejoin="round" points="177.9,230.9 211.8,247.4 207.1,208.1"/>
+          <polygon fill="#CD6116" stroke="#CD6116" stroke-linecap="round" stroke-linejoin="round" points="211.8,247.4 177.9,230.9 180.6,253 180.3,262.3"/>
+          <polygon fill="#CD6116" stroke="#CD6116" stroke-linecap="round" stroke-linejoin="round" points="106.8,247.4 138.3,262.3 138.1,253 140.6,230.9"/>
+          <polygon fill="#E4751F" stroke="#E4751F" stroke-linecap="round" stroke-linejoin="round" points="138.8,193.5 110.6,185.2 130.5,176.1"/>
+          <polygon fill="#E4751F" stroke="#E4751F" stroke-linecap="round" stroke-linejoin="round" points="179.7,193.5 188,176.1 207.9,185.2"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="106.8,247.4 111.6,206.8 80.3,207.7"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="207,206.8 211.8,247.4 238.3,207.7"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="230.8,162.1 174.6,164.6 179.8,193.5 188.1,176.1 207.9,185.2"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="110.6,185.2 130.5,176.1 138.8,193.5 144.1,164.6 87.8,162.1"/>
+          <polygon fill="#C0AD9E" stroke="#C0AD9E" stroke-linecap="round" stroke-linejoin="round" points="87.8,162.1 111.4,208.1 110.6,185.2"/>
+          <polygon fill="#C0AD9E" stroke="#C0AD9E" stroke-linecap="round" stroke-linejoin="round" points="207.9,185.2 207.1,208.1 230.8,162.1"/>
+          <polygon fill="#C0AD9E" stroke="#C0AD9E" stroke-linecap="round" stroke-linejoin="round" points="144.1,164.6 138.8,193.5 145.4,227.6 146.9,182.7"/>
+          <polygon fill="#C0AD9E" stroke="#C0AD9E" stroke-linecap="round" stroke-linejoin="round" points="174.6,164.6 171.9,182.6 173.1,227.6 179.8,193.5"/>
+          <polygon fill="#161616" stroke="#161616" stroke-linecap="round" stroke-linejoin="round" points="179.8,193.5 173.1,227.6 177.9,230.9 207.1,208.1 207.9,185.2"/>
+          <polygon fill="#161616" stroke="#161616" stroke-linecap="round" stroke-linejoin="round" points="110.6,185.2 111.4,208.1 140.6,230.9 145.4,227.6 138.8,193.5"/>
+          <polygon fill="#763D16" stroke="#763D16" stroke-linecap="round" stroke-linejoin="round" points="180.3,262.3 180.6,253 178.1,250.8 140.4,250.8 138.1,253 138.3,262.3 106.8,247.4 117.8,256.4 140.1,271.9 178.4,271.9 200.8,256.4 211.8,247.4"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="177.9,230.9 173.1,227.6 145.4,227.6 140.6,230.9 138.1,253 140.4,250.8 178.1,250.8 180.6,253"/>
+          <polygon fill="#E2761B" stroke="#E2761B" stroke-linecap="round" stroke-linejoin="round" points="278.3,114.2 286.8,73.4 274.1,35.5 177.9,106.9 214.9,138.2 267.2,153.5 278.8,140 273.8,136.4 281.8,129.1 275.6,124.3 283.6,118.2"/>
+          <polygon fill="#E2761B" stroke="#E2761B" stroke-linecap="round" stroke-linejoin="round" points="31.8,73.4 40.3,114.2 34.9,118.2 43,124.3 36.8,129.1 44.8,136.4 39.8,140 51.3,153.5 103.6,138.2 140.6,106.9 44.4,35.5"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="267.2,153.5 214.9,138.2 230.8,162.1 207.1,208.1 238.3,207.7 284.8,207.7"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="103.6,138.2 51.3,153.5 33.9,207.7 80.3,207.7 111.4,208.1 87.8,162.1"/>
+          <polygon fill="#F6851B" stroke="#F6851B" stroke-linecap="round" stroke-linejoin="round" points="174.6,164.6 177.9,106.9 193.1,65.8 125.6,65.8 140.6,106.9 144.1,164.6 145.3,182.8 145.4,227.6 173.1,227.6 173.2,182.8"/>
+        </svg>
+        <span id="btn-metamask-text">Install MetaMask</span>
+      </button>
+
+      <!-- Continue button -->
+      <a class="btn-continue locked" id="btn-continue" href="pages/auth.html">
+        <span>Continue to Login</span>
+        <span>→</span>
+      </a>
+
+      <p class="lock-hint" id="lock-hint">
+        🔒 MetaMask is required to use SWEVOT
+      </p>
+    </div>
+
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="steps-section">
+    <div class="steps-inner">
+      <p class="section-label">How it works</p>
+      <h2 class="section-heading">Vote in 4 Simple Steps</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon">🦊</div>
+          <div class="step-title">Connect Wallet</div>
+          <div class="step-desc">Install MetaMask and connect your Ethereum wallet to verify your identity securely.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon">📋</div>
+          <div class="step-title">Register &amp; Verify</div>
+          <div class="step-desc">Submit your voter credentials. They are verified against official records off-chain.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon">🗳️</div>
+          <div class="step-title">Cast Your Vote</div>
+          <div class="step-desc">Select your candidate. A blockchain transaction is signed with your private key.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">04</div>
+          <div class="step-icon">📊</div>
+          <div class="step-title">Live Results</div>
+          <div class="step-desc">Watch real-time tally updates pulled directly from the smart contract — no intermediary.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 SWEVOT · Blockchain Voting System</span>
+    <span>Built on <a href="https://ethereum.org" target="_blank">Ethereum Sepolia</a></span>
+  </footer>
+
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div class="toast-body" id="toast-body"></div>
+</div>
+
+<script>
+  /* ── Animated Background Canvas ── */
+  (function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, nodes = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const COUNT = 55;
+    for (let i = 0; i < COUNT; i++) {
+      nodes.push({
+        x: Math.random() * 1500,
+        y: Math.random() * 1000,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: Math.random() * 2 + 1
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      // draw lines
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 160) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(0,180,216,${0.12 * (1 - dist / 160)})`;
+            ctx.lineWidth = 0.8;
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      // draw nodes
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,180,216,0.5)';
+        ctx.fill();
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > W) n.vx *= -1;
+        if (n.y < 0 || n.y > H) n.vy *= -1;
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+
+  /* ── MetaMask Detection & Logic ── */
+  const btnMM   = document.getElementById('btn-metamask');
+  const btnMMTx = document.getElementById('btn-metamask-text');
+  const btnCont = document.getElementById('btn-continue');
+  const lockHint= document.getElementById('lock-hint');
+
+  function isMetaMaskInstalled() {
+    return typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+  }
+
+  function unlockContinue() {
+    btnCont.classList.remove('locked');
+    lockHint.classList.add('hidden');
+  }
+
+  function setInstalledState() {
+    btnMM.classList.add('installed');
+    btnMMTx.textContent = '✓ MetaMask Detected';
+    unlockContinue();
+  }
+
+  function showToast(title, body, duration = 4000) {
+    document.getElementById('toast-title').textContent = title;
+    document.getElementById('toast-body').textContent = body;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  // On page load, check if MetaMask is already there
+  window.addEventListener('load', () => {
+    if (isMetaMaskInstalled()) {
+      setInstalledState();
+    }
+  });
+
+  async function handleMetaMask() {
+    if (isMetaMaskInstalled()) {
+      // Already installed — just unlock continue
+      setInstalledState();
+      showToast('MetaMask Ready', 'Your wallet is connected. Click Continue to login.');
+      return;
+    }
+    // Not installed — open MetaMask download page
+    showToast('Opening MetaMask', 'Redirecting you to the MetaMask download page…');
+    const popup = window.open('https://metamask.io/download/', '_blank', 'noopener,noreferrer');
+
+    // Poll for MetaMask installation (every 2s for up to 3 min)
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      if (isMetaMaskInstalled()) {
+        clearInterval(poll);
+        setInstalledState();
+        showToast('🎉 MetaMask Installed!', 'You can now continue to SWEVOT.');
+      }
+      if (attempts > 90) clearInterval(poll);
+    }, 2000);
+  }
+</script>
 </body>
 </html>
