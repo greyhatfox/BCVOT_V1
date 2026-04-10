@@ -249,19 +249,19 @@
                  placeholder="e.g. 42" min="1" style="letter-spacing:0" />
         </div>
 
-        <div class="reg-section-label" style="margin-top:20px">Wallet Binding (Optional)</div>
+        <div class="reg-section-label" style="margin-top:20px">Wallet Binding <span style="color:var(--accent);font-size:0.65rem;font-weight:600">REQUIRED TO VOTE</span></div>
 
         <div class="wallet-row">
           <div class="input-group">
             <label class="input-label" for="wallet-input">MetaMask Wallet Address</label>
             <input type="text" id="wallet-input" class="input-field"
-                   placeholder="0x… (leave blank if you don't have one yet)"
+                   placeholder="0x… — click Auto-Fill to connect MetaMask"
                    style="font-size:0.78rem" />
           </div>
           <button class="mm-btn" id="connect-mm-btn" onclick="connectMetaMask()">🦊 Auto-Fill</button>
         </div>
         <div style="font-size:0.72rem;color:var(--text3);margin-top:-12px;margin-bottom:18px">
-          You can add or update your wallet later via the Supabase table editor.
+          Connecting your wallet here will automatically register you on the blockchain so you can vote immediately.
         </div>
 
         <button class="reg-btn reg-btn-voter" id="voter-submit-btn" onclick="registerVoter()">
@@ -346,6 +346,7 @@
 
 <script src="../js/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
 <script src="../js/script.js"></script>
 <script src="../js/register.js"></script>
 <script>

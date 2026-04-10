@@ -4,7 +4,7 @@
 const CONFIG = {
   supabaseUrl:     "https://ffrlylhphpavowhqbiex.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcmx5bGhwaHBhdm93aHFiaWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDY1MjcsImV4cCI6MjA5MTM4MjUyN30.ozoyGQWs1NMGKgnKcq3OuypuhcAVexFsT5I8cD68xDM",
-  contractAddress: "0x98227C034d3c139A0D69C4C1082C0059179fD2D5",
+  contractAddress: "0x343877022eaC825e7d39dAf8915b1D03A3f15783",
   electionId:      1,
   // strictWalletCheck: false → warns on wallet mismatch but doesn't block the vote.
   // Set to true once you've updated the wallet_address in Supabase to match your MetaMask.
@@ -94,6 +94,10 @@ const CONFIG = {
 
     { "inputs": [ { "internalType": "address", "name": "voter", "type": "address" } ],
       "name": "registerVoter",
+      "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+
+    { "inputs": [],
+      "name": "selfRegister",
       "outputs": [], "stateMutability": "nonpayable", "type": "function" },
 
     { "inputs": [

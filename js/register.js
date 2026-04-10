@@ -101,9 +101,37 @@ async function registerVoter() {
     const { error } = await _sbReg.from('voters').insert(payload);
     if (error) throw error;
 
+    // ── Register wallet on-chain via selfRegister() ──
+    if (wallet && /^0x[0-9a-fA-F]{40}$/.test(wallet) && window.ethereum) {
+      try {
+        btn.textContent = 'REGISTERING ON BLOCKCHAIN…';
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer   = await provider.getSigner();
+        const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, signer);
+
+        // Check if already registered on-chain (e.g. re-registration attempt)
+        const alreadyRegistered = await contract.registeredVoters(await signer.getAddress());
+        if (!alreadyRegistered) {
+          const tx = await contract.selfRegister();
+          btn.textContent = 'CONFIRMING ON BLOCKCHAIN…';
+          await tx.wait();
+        }
+      } catch (chainErr) {
+        // Non-fatal: voter is saved in Supabase; warn but don't block
+        console.warn('[Register] On-chain selfRegister failed:', chainErr);
+        showRegError(
+          '⚠️ Saved to database but blockchain registration failed: ' +
+          (chainErr.reason || chainErr.message || 'Unknown error') +
+          '<br><small>You may not be able to vote until this is resolved.</small>'
+        );
+        btn.disabled = false; btn.textContent = 'REGISTER AS VOTER';
+        return;
+      }
+    }
+
     showRegSuccess(
       `✅ <strong>Registration successful!</strong> Welcome, ${name}.<br>
-       <span style="font-size:0.8rem;opacity:0.8">Your voting token (1) is ready. Redirecting to login…</span>`,
+       <span style="font-size:0.8rem;opacity:0.8">Your wallet is registered on-chain. Redirecting to login…</span>`,
       'auth.html'
     );
 

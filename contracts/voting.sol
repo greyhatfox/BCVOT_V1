@@ -38,6 +38,12 @@ contract Voting {
         emit VoterRegistered(voter);
     }
 
+    function selfRegister() external {
+        require(!registeredVoters[msg.sender], "Already registered");
+        registeredVoters[msg.sender] = true;
+        emit VoterRegistered(msg.sender);
+    }
+
     function createElection(string memory title, uint durationInSeconds, string[] memory names, string[] memory parties) external onlyAdmin returns (uint) {
         electionCount++;
         elections[electionCount] = Election(electionCount, title, true, block.timestamp + durationInSeconds);
