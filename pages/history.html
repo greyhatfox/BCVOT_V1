@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Transaction History</title>
+  <meta name="description" content="Full immutable transaction log for your blockchain votes. Every vote is permanently recorded on Sepolia." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nav-links">
+    <a href="dashboard.html" id="nav-dashboard">Dashboard</a>
+    <a href="ballots.html"   id="nav-ballots">Ballots</a>
+    <a href="history.html"   id="nav-history" class="active">History</a>
+    <a href="results.html"   id="nav-results">Live Results</a>
+    <a href="auth.html"      id="nav-auth" style="color:rgba(255,255,255,0.35);font-size:0.8rem">Auth Demo</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-dot"></div>
+    <div>
+      <div class="nav-username">LOADING…</div>
+      <div class="verified-badge">● VERIFIED</div>
+    </div>
+    <div class="nav-avatar">…</div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+  </div>
+</nav>
+
+<div style="display:flex;flex:1;">
+  <div class="sidebar">
+    <a href="dashboard.html" class="sidebar-icon" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="sidebar-label">Dashboard</span>
+    </a>
+    <a href="ballots.html" class="sidebar-icon" title="Ballots">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span class="sidebar-label">Ballots</span>
+    </a>
+    <a href="history.html" class="sidebar-icon active" title="History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="sidebar-label">History</span>
+    </a>
+    <a href="results.html" class="sidebar-icon" title="Live Results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sidebar-label">Live Results</span>
+    </a>
+    <div class="sidebar-divider"></div>
+    <a class="sidebar-icon" title="Logout" href="auth.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+      <span class="sidebar-label">Logout</span>
+    </a>
+  </div>
+
+  <div class="main-content">
+    <div class="page-title">TRANSACTION HISTORY</div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">All Transactions · Immutable Ledger</span>
+        <span id="block-display" style="font-size:0.75rem;color:var(--text3)">Sepolia Testnet</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <!-- No results yet banner -->
+        <div id="history-empty" style="display:none;text-align:center;padding:40px;color:var(--text3);font-size:0.85rem">
+          No transactions recorded yet. Cast your vote to create an on-chain transaction.
+        </div>
+        <table class="tx-table" id="history-table" style="width:100%">
+          <thead>
+            <tr style="background:var(--surface2)">
+              <th style="padding:12px 20px">Tx Hash</th>
+              <th>Block</th>
+              <th>Timestamp</th>
+              <th>From</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-tx-body">
+            <tr>
+              <td colspan="5" style="text-align:center;padding:24px;color:var(--text3);font-size:0.82rem">
+                ⏳ Loading your transaction history…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script load order -->
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../js/script.js"></script>
+<script>
+(async function loadHistory() {
+  // Auth guard
+  const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
+  if (!voter) { window.location.href = 'auth.html'; return; }
+  populateNav(voter);
+
+  const db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  const { data: txs, error } = await db
+    .from('transactions')
+    .select('*')
+    .eq('from_address', voter.wallet_address ? voter.wallet_address.toLowerCase() : '')
+    .order('timestamp', { ascending: false });
+
+  const tbody = document.getElementById('history-tx-body');
+  tbody.innerHTML = '';
+
+  if (error || !txs || txs.length === 0) {
+    document.getElementById('history-empty').style.display = 'block';
+    document.getElementById('history-table').style.display = 'none';
+    return;
+  }
+
+  const COLORS = ['rgba(6,214,160,0.1)','rgba(0,180,216,0.1)','rgba(239,35,60,0.1)','rgba(255,190,11,0.1)','rgba(139,92,246,0.1)'];
+  const ICONS  = ['🟢','🔵','🔴','🟡','🟣'];
+
+  function fmtTs(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts), pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  txs.forEach((tx, i) => {
+    const ci  = i % COLORS.length;
+    const row = document.createElement('tr');
+    const shortHash = `${tx.tx_hash.slice(0,10)}…${tx.tx_hash.slice(-6)}`;
+    const shortFrom = tx.from_address ? `${tx.from_address.slice(0,6)}…${tx.from_address.slice(-4)}` : '—';
+    row.innerHTML = `
+      <td style="padding:12px 20px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="tx-icon" style="background:${COLORS[ci]}">${ICONS[ci]}</div>
+          <span class="tx-hash"
+                title="${tx.tx_hash}"
+                style="cursor:pointer"
+                onclick="window.open('https://sepolia.etherscan.io/tx/${tx.tx_hash}','_blank')">${shortHash}</span>
+        </div>
+      </td>
+      <td class="tx-time">${tx.block_number ? '#' + tx.block_number : '—'}</td>
+      <td class="tx-time">${fmtTs(tx.timestamp)}</td>
+      <td class="tx-hash">${shortFrom}</td>
+      <td><span class="status-confirmed">${tx.status}</span></td>`;
+    tbody.appendChild(row);
+  });
+
+  // Show etherscan link count
+  document.getElementById('block-display').textContent = `${txs.length} transaction${txs.length !== 1 ? 's' : ''} · Sepolia`;
+})();
+</script>
+</body>
+</html>

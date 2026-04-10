@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Live Results</title>
+  <meta name="description" content="Real-time public election results pulled directly from the Sepolia blockchain smart contract." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nav-links">
+    <a href="dashboard.html" id="nav-dashboard">Dashboard</a>
+    <a href="ballots.html"   id="nav-ballots">Ballots</a>
+    <a href="history.html"   id="nav-history">History</a>
+    <a href="results.html"   id="nav-results" class="active">Live Results</a>
+    <a href="auth.html"      id="nav-auth" style="color:rgba(255,255,255,0.35);font-size:0.8rem">Auth Demo</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-dot"></div>
+    <div>
+      <div class="nav-username">PUBLIC</div>
+      <div class="verified-badge">● OPEN DATA</div>
+    </div>
+    <div class="nav-avatar">📊</div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+  </div>
+</nav>
+
+<div style="display:flex;flex:1;">
+  <div class="sidebar">
+    <a href="dashboard.html" class="sidebar-icon" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="sidebar-label">Dashboard</span>
+    </a>
+    <a href="ballots.html" class="sidebar-icon" title="Ballots">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span class="sidebar-label">Ballots</span>
+    </a>
+    <a href="history.html" class="sidebar-icon" title="History">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="sidebar-label">History</span>
+    </a>
+    <a href="results.html" class="sidebar-icon active" title="Live Results">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sidebar-label">Live Results</span>
+    </a>
+    <div class="sidebar-divider"></div>
+    <a class="sidebar-icon" title="Logout" href="auth.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+      <span class="sidebar-label">Logout</span>
+    </a>
+  </div>
+
+  <div class="main-content">
+    <div class="top-row">
+      <div class="page-title">PUBLIC RESULTS &amp; TRANSACTION TRANSPARENCY</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="nav-dot" style="animation:pulse 1.5s infinite"></div>
+        <span style="font-size:0.8rem;color:var(--text3);font-weight:600">LIVE</span>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <!-- Left: Chart + Stats -->
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-body">
+            <div class="chart-title">LIVE ELECTION RESULTS</div>
+
+            <!-- Bar chart — populated by results.js -->
+            <div class="bar-chart" id="live-chart">
+              <!-- Placeholder bars shown until results.js loads -->
+              <div class="bar-col"><div class="bar-val">—</div><div class="bar" style="height:4%;background:#e2e8f0"></div></div>
+              <div class="bar-col"><div class="bar-val">—</div><div class="bar" style="height:4%;background:#e2e8f0"></div></div>
+              <div class="bar-col"><div class="bar-val">—</div><div class="bar" style="height:4%;background:#e2e8f0"></div></div>
+              <div class="bar-col"><div class="bar-val">—</div><div class="bar" style="height:4%;background:#e2e8f0"></div></div>
+            </div>
+            <div class="bar-labels" id="bar-labels">
+              <div class="bar-label">—</div>
+              <div class="bar-label">—</div>
+              <div class="bar-label">—</div>
+              <div class="bar-label">—</div>
+            </div>
+
+            <div class="leading-note" style="margin-top:12px" id="leading-note">
+              📊 <strong>Fetching on-chain results…</strong>
+            </div>
+
+            <div class="results-stats">
+              <div class="stat-box">
+                <div class="stat-val" id="total-votes">—</div>
+                <div class="stat-lbl">Total Votes Cast</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val" id="tx-count-stat">—</div>
+                <div class="stat-lbl">Confirmed Tx (Supabase)</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val">Sepolia</div>
+                <div class="stat-lbl">Network</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-val">0.0</div>
+                <div class="stat-lbl">Anomalies Found</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Constituency Map</span></div>
+          <div class="card-body">
+            <div class="map-placeholder">
+              <canvas id="mapCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+              <span style="position:relative;z-index:1;font-size:0.75rem;color:var(--primary-dark)" id="map-label">Constituency 42 · National Election 2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Immutable tx log + candidate breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Votes (Immutable)</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+        </div>
+        <div class="card-body" style="padding:12px 16px">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Tx Hash</th>
+                <th>Timestamp</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="results-tx-body">
+              <tr>
+                <td colspan="3" style="text-align:center;padding:20px;color:var(--text3);font-size:0.8rem">
+                  ⏳ Loading transactions…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Candidate breakdown — populated by results.js -->
+          <div style="margin-top:20px">
+            <div style="font-size:0.72rem;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">
+              Candidate Breakdown
+            </div>
+            <div id="candidate-breakdown" style="display:flex;flex-direction:column;gap:10px">
+              <div style="color:var(--text3);font-size:0.8rem;text-align:center;padding:12px">
+                Fetching on-chain vote counts…
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Script load order: config → supabase → ethers → script → results -->
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/results.js"></script>
+<script>
+  // Populate nav from session if available
+  document.addEventListener('DOMContentLoaded', () => {
+    const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
+    if (voter) populateNav(voter);
+  });
+</script>
+</body>
+</html>

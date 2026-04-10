@@ -1,0 +1,112 @@
+// js/config.js — Blockchain Voting System Frontend Configuration
+// ⚠️ Do not expose this file publicly in a production environment
+
+const CONFIG = {
+  supabaseUrl:     "https://ffrlylhphpavowhqbiex.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcmx5bGhwaHBhdm93aHFiaWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDY1MjcsImV4cCI6MjA5MTM4MjUyN30.ozoyGQWs1NMGKgnKcq3OuypuhcAVexFsT5I8cD68xDM",
+  contractAddress: "0x98227C034d3c139A0D69C4C1082C0059179fD2D5",
+  electionId:      1,
+  // strictWalletCheck: false → warns on wallet mismatch but doesn't block the vote.
+  // Set to true once you've updated the wallet_address in Supabase to match your MetaMask.
+  strictWalletCheck: false,
+
+  // Public Sepolia RPC for read-only calls (results page, no MetaMask required)
+  sepoliaRpc: "https://rpc.sepolia.org",
+
+  // Full JSON ABI for Voting.sol (solidity 0.8.19)
+  contractABI: [
+    { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+
+    { "anonymous": false, "inputs": [
+        { "indexed": true,  "internalType": "uint256", "name": "electionId",  "type": "uint256" },
+        { "indexed": true,  "internalType": "address", "name": "voter",        "type": "address"  },
+        { "indexed": false, "internalType": "uint256", "name": "candidateId", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "timestamp",   "type": "uint256" }
+      ], "name": "VoteCast", "type": "event" },
+
+    { "anonymous": false, "inputs": [
+        { "indexed": true,  "internalType": "uint256", "name": "electionId", "type": "uint256" },
+        { "indexed": false, "internalType": "string",  "name": "title",      "type": "string"  }
+      ], "name": "ElectionCreated", "type": "event" },
+
+    { "anonymous": false, "inputs": [
+        { "indexed": true, "internalType": "address", "name": "voter", "type": "address" }
+      ], "name": "VoterRegistered", "type": "event" },
+
+    { "inputs": [], "name": "admin",
+      "outputs": [ { "internalType": "address", "name": "", "type": "address" } ],
+      "stateMutability": "view", "type": "function" },
+
+    { "inputs": [], "name": "electionCount",
+      "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+      "stateMutability": "view", "type": "function" },
+
+    { "inputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" },
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ], "name": "electionCandidates",
+      "outputs": [
+        { "internalType": "uint256", "name": "id",        "type": "uint256" },
+        { "internalType": "string",  "name": "name",      "type": "string"  },
+        { "internalType": "string",  "name": "party",     "type": "string"  },
+        { "internalType": "uint256", "name": "voteCount", "type": "uint256" }
+      ], "stateMutability": "view", "type": "function" },
+
+    { "inputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+      "name": "elections",
+      "outputs": [
+        { "internalType": "uint256", "name": "id",       "type": "uint256" },
+        { "internalType": "string",  "name": "title",    "type": "string"  },
+        { "internalType": "bool",    "name": "isActive", "type": "bool"    },
+        { "internalType": "uint256", "name": "endTime",  "type": "uint256" }
+      ], "stateMutability": "view", "type": "function" },
+
+    { "inputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" },
+        { "internalType": "address", "name": "", "type": "address" }
+      ], "name": "hasVoted",
+      "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ],
+      "stateMutability": "view", "type": "function" },
+
+    { "inputs": [ { "internalType": "address", "name": "", "type": "address" } ],
+      "name": "registeredVoters",
+      "outputs": [ { "internalType": "bool", "name": "", "type": "bool" } ],
+      "stateMutability": "view", "type": "function" },
+
+    { "inputs": [ { "internalType": "uint256", "name": "electionId", "type": "uint256" } ],
+      "name": "getResults",
+      "outputs": [ {
+        "components": [
+          { "internalType": "uint256", "name": "id",        "type": "uint256" },
+          { "internalType": "string",  "name": "name",      "type": "string"  },
+          { "internalType": "string",  "name": "party",     "type": "string"  },
+          { "internalType": "uint256", "name": "voteCount", "type": "uint256" }
+        ],
+        "internalType": "struct Voting.Candidate[]", "name": "", "type": "tuple[]"
+      }],
+      "stateMutability": "view", "type": "function" },
+
+    { "inputs": [
+        { "internalType": "uint256", "name": "electionId",  "type": "uint256" },
+        { "internalType": "uint256", "name": "candidateId", "type": "uint256" }
+      ], "name": "castVote",
+      "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+
+    { "inputs": [ { "internalType": "address", "name": "voter", "type": "address" } ],
+      "name": "registerVoter",
+      "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+
+    { "inputs": [
+        { "internalType": "string",   "name": "title",             "type": "string"   },
+        { "internalType": "uint256",  "name": "durationInSeconds", "type": "uint256"  },
+        { "internalType": "string[]", "name": "names",             "type": "string[]" },
+        { "internalType": "string[]", "name": "parties",           "type": "string[]" }
+      ], "name": "createElection",
+      "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ],
+      "stateMutability": "nonpayable", "type": "function" },
+
+    { "inputs": [ { "internalType": "uint256", "name": "electionId", "type": "uint256" } ],
+      "name": "closeElection",
+      "outputs": [], "stateMutability": "nonpayable", "type": "function" }
+  ]
+};

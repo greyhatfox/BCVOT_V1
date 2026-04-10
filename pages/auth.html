@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Identity Verification</title>
+  <meta name="description" content="Verify your identity with Aadhaar and biometric authentication to access the blockchain voting system." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nav-links">
+    <a href="dashboard.html" id="nav-dashboard">Dashboard</a>
+    <a href="ballots.html"   id="nav-ballots">Ballots</a>
+    <a href="history.html"   id="nav-history">History</a>
+    <a href="results.html"   id="nav-results">Live Results</a>
+    <a href="auth.html"      id="nav-auth" class="active" style="color:rgba(255,255,255,0.35);font-size:0.8rem">Auth Demo</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-dot"></div>
+    <div>
+      <div class="nav-username">GUEST</div>
+      <div class="verified-badge">● UNVERIFIED</div>
+    </div>
+    <div class="nav-avatar">?</div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg>
+  </div>
+</nav>
+
+<div style="flex:1;background:linear-gradient(135deg,#e8f4f8,#f0f8fc,#e8f0f8);display:flex;">
+  <div class="auth-page" style="flex:1">
+    <div class="auth-card">
+      <div class="auth-title">Identity Verification</div>
+      <div class="auth-sub">Verify using your 12-Digit Aadhaar number to access the voting system.</div>
+
+      <div class="input-group">
+        <label class="input-label" for="aadhaar-input">12-Digit Aadhaar Number</label>
+        <input type="text" id="aadhaar-input" class="input-field"
+               placeholder="XXXX-XXXX-XXXX" maxlength="14"
+               oninput="formatAadhaar(this)"
+               onkeydown="if(event.key==='Enter') doAuth()" />
+      </div>
+
+      <!-- Error message -->
+      <div id="auth-error" style="
+        display:none; align-items:center; gap:8px;
+        background:rgba(239,35,60,0.08); border:1px solid rgba(239,35,60,0.25);
+        border-radius:var(--radius-sm); padding:10px 14px;
+        font-size:0.82rem; color:var(--danger); margin-bottom:12px;">
+      </div>
+
+      <div class="fingerprint-section">
+        <div class="fingerprint-ring">
+          <div class="fp-icon">🖐</div>
+        </div>
+        <div class="fp-label">Biometric Authentication<br>
+          <span style="color:var(--primary);font-weight:600">Place finger on sensor</span>
+        </div>
+      </div>
+
+      <button class="auth-btn" id="auth-submit-btn" onclick="doAuth()">VERIFY &amp; CONTINUE</button>
+
+      <div class="uidai-note">
+        🔒 Secured by <strong>UIDAI</strong> · Simulated Identity Verification (Demo Only)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Script load order: config → supabase → shared → auth -->
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/auth.js"></script>
+</body>
+</html>
