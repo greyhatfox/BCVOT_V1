@@ -27,6 +27,7 @@ contract Voting {
     event VoteCast(uint indexed electionId, address indexed voter, uint candidateId, uint timestamp);
     event ElectionCreated(uint indexed electionId, string title);
     event VoterRegistered(address indexed voter);
+    event CandidateAdded(uint indexed electionId, uint candidateId, string name);
 
     modifier onlyAdmin() { require(msg.sender == admin, "Not admin"); _; }
     modifier onlyRegistered() { require(registeredVoters[msg.sender], "Not registered"); _; }
@@ -52,6 +53,20 @@ contract Voting {
         }
         emit ElectionCreated(electionCount, title);
         return electionCount;
+    }
+
+    // ── Add a single candidate to an existing election (admin only) ──
+    function addCandidate(uint electionId, string memory name, string memory party) external onlyAdmin returns (uint) {
+        require(elections[electionId].id != 0, "Election does not exist");
+        uint newId = electionCandidates[electionId].length + 1;
+        electionCandidates[electionId].push(Candidate(newId, name, party, 0));
+        emit CandidateAdded(electionId, newId, name);
+        return newId;
+    }
+
+    // ── Return the on-chain candidate index for a candidate by name (helper) ──
+    function getCandidateCount(uint electionId) external view returns (uint) {
+        return electionCandidates[electionId].length;
     }
 
     function castVote(uint electionId, uint candidateId) external onlyRegistered {

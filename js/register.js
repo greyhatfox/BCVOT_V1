@@ -94,7 +94,8 @@ async function registerVoter() {
 
     // ── Build voter payload ──
     const payload = {
-      aadhaar_hash:  hash,
+      aadhaar_hash:   hash,
+      aadhaar_number: aadhaarRaw,   // plain 12-digit number saved for admin/audit
       name,
       constituency,
       has_voted:     false,

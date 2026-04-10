@@ -459,22 +459,67 @@ async function loadCandidates() {
   });
 }
 
-// ── Approve candidate in Supabase ────────────────────────────
+// ── Approve candidate: on-chain first, then Supabase ─────────
 async function approveCandidate(id, btn) {
   btn.disabled = true;
-  btn.textContent = 'Saving…';
-  const { error } = await _db.from('candidates').update({ approved: true }).eq('id', id);
-  if (error) {
-    adminToast('❌ Failed to approve candidate.');
-    btn.disabled = false; btn.textContent = '✓ Approve';
+  btn.textContent = 'Connecting…';
+
+  // 1. Fetch candidate details from Supabase
+  const { data: cand, error: fetchErr } = await _db
+    .from('candidates').select('name, party, election_id').eq('id', id).single();
+  if (fetchErr || !cand) {
+    adminToast('❌ Could not fetch candidate details.');
+    btn.disabled = false; btn.textContent = '✓ Approve for Ballot';
     return;
   }
+
+  // 2. Call addCandidate() on-chain (admin signs tx)
+  let onchainId;
+  try {
+    btn.textContent = 'Awaiting Signature…';
+    const contract = await getAdminContract();
+    const tx = await contract.addCandidate(cand.election_id, cand.name, cand.party);
+    btn.textContent = 'Confirming on Chain…';
+    const receipt = await tx.wait();
+
+    // Parse the CandidateAdded event to get the on-chain candidate id
+    const iface = contract.interface;
+    let parsedId = null;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed && parsed.name === 'CandidateAdded') {
+          parsedId = Number(parsed.args.candidateId);
+          break;
+        }
+      } catch (_) {}
+    }
+    onchainId = parsedId;
+  } catch (chainErr) {
+    console.error('[Approve] On-chain addCandidate failed:', chainErr);
+    adminToast('❌ Blockchain transaction failed: ' + (chainErr.reason || chainErr.message));
+    btn.disabled = false; btn.textContent = '✓ Approve for Ballot';
+    return;
+  }
+
+  // 3. Mark approved in Supabase and store the on-chain index
+  const updatePayload = { approved: true };
+  if (onchainId) updatePayload.onchain_id = onchainId;
+
+  const { error: updateErr } = await _db.from('candidates').update(updatePayload).eq('id', id);
+  if (updateErr) {
+    adminToast('⚠️ On-chain OK, but Supabase update failed. Refresh and try again.');
+    btn.disabled = false; btn.textContent = '✓ Approve for Ballot';
+    return;
+  }
+
+  // 4. Update UI
   const statusTd = btn.closest('td').previousElementSibling;
   statusTd.innerHTML = '<span class="badge badge-green">APPROVED</span>';
   btn.closest('td').innerHTML = '<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>';
   document.getElementById('stat-pending').textContent =
     Math.max(0, parseInt(document.getElementById('stat-pending').textContent) - 1);
-  adminToast('✅ Candidate approved — they will now appear on the ballot.');
+  adminToast(`✅ Candidate added on-chain (id: ${onchainId ?? '?'}) and approved.`);
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS candidates (
   party       TEXT NOT NULL,
   symbol      TEXT,                     -- emoji symbol
   election_id INTEGER,
-  approved    BOOLEAN DEFAULT false
+  approved    BOOLEAN DEFAULT false,
+  onchain_id  INTEGER,                  -- positional index in electionCandidates[] on-chain (1-based)
+  wallet_address TEXT                   -- candidate's ETH wallet (optional)
 );
 
 CREATE TABLE IF NOT EXISTS voters (
@@ -68,12 +70,12 @@ ON CONFLICT DO NOTHING;
 --   candidateId 3 → Ashtami
 --   candidateId 4 → Tirupati
 
-INSERT INTO candidates (name, party, symbol, election_id, approved)
+INSERT INTO candidates (name, party, symbol, election_id, approved, onchain_id)
 VALUES
-  ('Naman Jain', 'Progressive Party', '🌿', 1, true),
-  ('Anubrata',   'Unity Party',       '⭐', 1, true),
-  ('Ashtami',    'Independent',       '∞',  1, true),
-  ('Tirupati',   'Marxist Alliance',  '💪', 1, true)
+  ('Naman Jain', 'Progressive Party', '🌿', 1, true, 1),
+  ('Anubrata',   'Unity Party',       '⭐', 1, true, 2),
+  ('Ashtami',    'Independent',       '∞',  1, true, 3),
+  ('Tirupati',   'Marxist Alliance',  '💪', 1, true, 4)
 ON CONFLICT DO NOTHING;
 
 -- ── Demo Voter: Irfan Ahmed Mohammad ──────────────────────────
