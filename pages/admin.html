@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Admin Login</title>
+  <meta name="description" content="Admin access portal for the blockchain voting system." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    body { background: #0a0e1a; }
+
+    .admin-login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 20% 50%, rgba(239,35,60,0.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(0,180,216,0.08) 0%, transparent 60%),
+                  #0a0e1a;
+      padding: 40px 20px;
+    }
+
+    .admin-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      width: 460px;
+      max-width: 95vw;
+      padding: 44px 40px 40px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ef233c, #ff6b35, #ef233c);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s linear infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239,35,60,0.12);
+      border: 1px solid rgba(239,35,60,0.3);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #ef233c;
+      margin-bottom: 20px;
+    }
+
+    .admin-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+    .admin-sub {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .shield-icon {
+      font-size: 3.5rem;
+      text-align: center;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 20px rgba(239,35,60,0.4));
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    .connect-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ef233c, #c1121f);
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 8px 24px rgba(239,35,60,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .connect-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background 0.2s;
+    }
+    .connect-btn:hover::after { background: rgba(255,255,255,0.08); }
+    .connect-btn:active { transform: scale(0.98); }
+    .connect-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .wallet-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 0.8rem;
+    }
+    .wallet-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
+    .wallet-dot.connected { background: #06d6a0; box-shadow: 0 0 8px rgba(6,214,160,0.6); }
+    .wallet-address { font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.6); flex: 1; }
+
+    #admin-error {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      background: rgba(239,35,60,0.08);
+      border: 1px solid rgba(239,35,60,0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: #ef233c;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .voter-link {
+      text-align: center;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 20px;
+    }
+    .voter-link a { color: rgba(0,180,216,0.8); text-decoration: none; font-weight: 600; }
+    .voter-link a:hover { color: var(--primary); }
+  </style>
+</head>
+<body>
+
+<div class="admin-login-wrap">
+  <div class="admin-card">
+    <div class="shield-icon">🛡️</div>
+
+    <div style="text-align:center">
+      <div class="admin-badge">🔐 RESTRICTED ACCESS</div>
+    </div>
+
+    <div class="admin-title" style="text-align:center">Admin Portal</div>
+    <div class="admin-sub" style="text-align:center">
+      Connect the authorised administrator wallet to access the control panel.<br>
+      Unauthorised access attempts are logged.
+    </div>
+
+    <!-- Error -->
+    <div id="admin-error"></div>
+
+    <!-- Wallet status -->
+    <div class="wallet-status" id="wallet-status">
+      <div class="wallet-dot" id="wallet-dot"></div>
+      <span class="wallet-address" id="wallet-addr-display">No wallet connected</span>
+    </div>
+
+    <!-- Connect button -->
+    <button class="connect-btn" id="admin-connect-btn" onclick="adminLogin()">
+      🦊 &nbsp;CONNECT AS ADMIN
+    </button>
+
+    <div class="voter-link">
+      Not an admin? <a href="auth.html">Voter login →</a>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+<script>
+async function adminLogin() {
+  const btn       = document.getElementById('admin-connect-btn');
+  const errEl     = document.getElementById('admin-error');
+  const dot       = document.getElementById('wallet-dot');
+  const addrEl    = document.getElementById('wallet-addr-display');
+
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'CONNECTING…';
+
+  if (!window.ethereum) {
+    showErr('⚠️ MetaMask not detected. Please install the MetaMask extension.');
+    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+    return;
+  }
+
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const wallet   = accounts[0];
+
+    // Update wallet display
+    dot.classList.add('connected');
+    addrEl.textContent = `${wallet.slice(0,6)}…${wallet.slice(-4)}`;
+    addrEl.style.color = '#06d6a0';
+
+    btn.textContent = 'VERIFYING ADMIN RIGHTS…';
+    await new Promise(r => setTimeout(r, 800));
+
+    if (wallet.toLowerCase() !== CONFIG.adminAddress.toLowerCase()) {
+      dot.classList.remove('connected');
+      dot.style.background = '#ef233c';
+      addrEl.style.color = '#ef233c';
+      showErr('🚫 Access denied. This wallet does not have administrator privileges.');
+      btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+      return;
+    }
+
+    // Store admin session
+    sessionStorage.setItem('adminWallet', wallet.toLowerCase());
+    btn.textContent = '✅ ACCESS GRANTED — REDIRECTING…';
+    btn.style.background = 'linear-gradient(135deg, #06d6a0, #00b4d8)';
+    setTimeout(() => { window.location.href = 'admin-dashboard.html'; }, 1000);
+
+  } catch (e) {
+    showErr('🚫 MetaMask connection cancelled.');
+    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+  }
+}
+
+function showErr(msg) {
+  const el = document.getElementById('admin-error');
+  el.textContent = msg;
+  el.style.display = 'flex';
+}
+
+// Auto-detect if MetaMask already connected
+window.addEventListener('load', async () => {
+  if (window.ethereum) {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const accounts = await provider.listAccounts();
+    if (accounts.length > 0) {
+      const wallet = accounts[0].address;
+      document.getElementById('wallet-addr-display').textContent = `${wallet.slice(0,6)}…${wallet.slice(-4)}`;
+      document.getElementById('wallet-dot').classList.add('connected');
+    }
+  }
+});
+</script>
+</body>
+</html>

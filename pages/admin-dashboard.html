@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    body { background: #0a0e1a; color: #e2e8f0; }
+
+    /* ── Top Bar ── */
+    .admin-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .admin-brand {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+    .admin-brand span { color: #ef233c; }
+    .admin-wallet-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(239,35,60,0.1);
+      border: 1px solid rgba(239,35,60,0.25);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #ef233c;
+    }
+    .logout-btn {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 6px 14px;
+      color: rgba(255,255,255,0.4);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover { border-color: #ef233c; color: #ef233c; }
+
+    /* ── Layout ── */
+    .admin-body { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+    .admin-page-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .admin-page-sub { font-size: 0.82rem; color: rgba(255,255,255,0.35); margin-bottom: 32px; }
+
+    /* ── Stat cards ── */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+    .stat-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 1.5px; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 700; color: #fff; }
+    .stat-value.red { color: #ef233c; }
+    .stat-value.green { color: #06d6a0; }
+    .stat-value.blue { color: #00b4d8; }
+    .stat-value.yellow { color: #ffbe0b; }
+
+    /* ── Section cards ── */
+    .admin-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .section-title { font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 2px; color: rgba(255,255,255,0.7); }
+    .section-badge { font-size: 0.7rem; background: rgba(255,255,255,0.06); border-radius: 20px; padding: 3px 10px; color: rgba(255,255,255,0.4); }
+
+    /* ── Tables ── */
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table th {
+      padding: 11px 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: rgba(255,255,255,0.35);
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .admin-table td {
+      padding: 13px 20px;
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.7);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .admin-table tr:last-child td { border-bottom: none; }
+    .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .badge-green  { background: rgba(6,214,160,0.12);  color: #06d6a0; border: 1px solid rgba(6,214,160,0.25); }
+    .badge-red    { background: rgba(239,35,60,0.1);   color: #ef233c; border: 1px solid rgba(239,35,60,0.25); }
+    .badge-yellow { background: rgba(255,190,11,0.1);  color: #ffbe0b; border: 1px solid rgba(255,190,11,0.25); }
+    .badge-blue   { background: rgba(0,180,216,0.1);   color: #00b4d8; border: 1px solid rgba(0,180,216,0.25); }
+
+    /* ── Action buttons ── */
+    .action-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-register { background: rgba(0,180,216,0.15); color: #00b4d8; border: 1px solid rgba(0,180,216,0.3); }
+    .btn-register:hover:not(:disabled) { background: rgba(0,180,216,0.25); }
+    .btn-approve  { background: rgba(6,214,160,0.15);  color: #06d6a0; border: 1px solid rgba(6,214,160,0.3); }
+    .btn-approve:hover:not(:disabled)  { background: rgba(6,214,160,0.25); }
+    .btn-close    { background: rgba(239,35,60,0.12);  color: #ef233c; border: 1px solid rgba(239,35,60,0.25); }
+    .btn-close:hover:not(:disabled)    { background: rgba(239,35,60,0.22); }
+
+    /* ── Toast ── */
+    #admin-toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: rgba(6,214,160,0.95);
+      color: #0a0e1a;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    #admin-toast.show { opacity: 1; transform: translateY(0); }
+
+    .empty-row td { text-align: center; padding: 32px; color: rgba(255,255,255,0.2); font-size: 0.82rem; }
+
+    /* ── Loading skeleton ── */
+    .loading-row td { text-align: center; padding: 28px; color: rgba(255,255,255,0.25); }
+  </style>
+</head>
+<body>
+
+<!-- ── Top bar ── -->
+<div class="admin-topbar">
+  <div class="admin-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2 &nbsp;·&nbsp; <span style="color:rgba(255,255,255,0.4);font-size:0.85rem">ADMIN</span></div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="admin-wallet-pill">🛡️ <span id="topbar-wallet">Loading…</span></div>
+    <button class="logout-btn" onclick="adminLogout()">Logout</button>
+  </div>
+</div>
+
+<div class="admin-body">
+  <div class="admin-page-title">CONTROL PANEL</div>
+  <div class="admin-page-sub">Manage voters, candidates, and elections from this dashboard.</div>
+
+  <!-- ── Stats row ── -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Voters</div>
+      <div class="stat-value blue" id="stat-voters">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Votes Cast</div>
+      <div class="stat-value green" id="stat-voted">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending Candidates</div>
+      <div class="stat-value yellow" id="stat-pending">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Transactions</div>
+      <div class="stat-value" id="stat-tx">—</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       VOTERS TABLE
+  ══════════════════════════════════════ -->
+  <div class="admin-section">
+    <div class="section-header">
+      <span class="section-title">🗳️ VOTERS</span>
+      <span class="section-badge" id="voters-count-badge">Loading…</span>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Constituency</th>
+          <th>Wallet</th>
+          <th>On-Chain</th>
+          <th>Voted</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="voters-tbody">
+        <tr class="loading-row"><td colspan="6">⏳ Loading voters…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       CANDIDATE APPLICATIONS
+  ══════════════════════════════════════ -->
+  <div class="admin-section">
+    <div class="section-header">
+      <span class="section-title">🏆 CANDIDATE APPLICATIONS</span>
+      <span class="section-badge" id="cands-count-badge">Loading…</span>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Party</th>
+          <th>Symbol</th>
+          <th>Election</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="cands-tbody">
+        <tr class="loading-row"><td colspan="6">⏳ Loading candidates…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       RECENT TRANSACTIONS
+  ══════════════════════════════════════ -->
+  <div class="admin-section">
+    <div class="section-header">
+      <span class="section-title">📋 RECENT TRANSACTIONS</span>
+      <span class="section-badge" id="tx-count-badge">Loading…</span>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Tx Hash</th>
+          <th>From</th>
+          <th>Block</th>
+          <th>Time</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tx-tbody">
+        <tr class="loading-row"><td colspan="5">⏳ Loading transactions…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="admin-toast"></div>
+
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+<script>
+// ── Guard: must be admin ──────────────────────────────────────
+const _adminWallet = sessionStorage.getItem('adminWallet');
+if (!_adminWallet || _adminWallet.toLowerCase() !== CONFIG.adminAddress.toLowerCase()) {
+  window.location.href = 'admin.html';
+}
+
+const _db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+
+// ── Show wallet in topbar ─────────────────────────────────────
+document.getElementById('topbar-wallet').textContent =
+  `${_adminWallet.slice(0,6)}…${_adminWallet.slice(-4)}`;
+
+// ── Toast helper ──────────────────────────────────────────────
+function adminToast(msg) {
+  const t = document.getElementById('admin-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Format timestamp ──────────────────────────────────────────
+function fmtTs(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts), p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// ── Get contract with admin signer ───────────────────────────
+async function getAdminContract() {
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer   = await provider.getSigner();
+  return new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, signer);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD VOTERS
+// ══════════════════════════════════════════════════════════════
+async function loadVoters() {
+  const { data: voters, error } = await _db.from('voters').select('*').order('id');
+  const tbody = document.getElementById('voters-tbody');
+
+  if (error || !voters || voters.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No voters registered yet.</td></tr>';
+    document.getElementById('voters-count-badge').textContent = '0 voters';
+    document.getElementById('stat-voters').textContent = '0';
+    document.getElementById('stat-voted').textContent  = '0';
+    return;
+  }
+
+  // Check on-chain registration for each voter
+  const provider   = new ethers.BrowserProvider(window.ethereum);
+  const contractRO = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, provider);
+
+  document.getElementById('voters-count-badge').textContent = `${voters.length} voters`;
+  document.getElementById('stat-voters').textContent = voters.length;
+  document.getElementById('stat-voted').textContent  = voters.filter(v => v.has_voted).length;
+
+  tbody.innerHTML = '';
+  for (const v of voters) {
+    let onChain = false;
+    if (v.wallet_address) {
+      try { onChain = await contractRO.registeredVoters(v.wallet_address); } catch(_) {}
+    }
+
+    const row = document.createElement('tr');
+    const shortWallet = v.wallet_address
+      ? `${v.wallet_address.slice(0,6)}…${v.wallet_address.slice(-4)}`
+      : '<span style="color:rgba(255,255,255,0.2)">—</span>';
+
+    row.innerHTML = `
+      <td style="color:#fff;font-weight:600">${v.name}</td>
+      <td>C-${v.constituency}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${shortWallet}</span></td>
+      <td>
+        ${onChain
+          ? '<span class="badge badge-green">✓ REGISTERED</span>'
+          : '<span class="badge badge-red">✗ NOT ON-CHAIN</span>'}
+      </td>
+      <td>
+        ${v.has_voted
+          ? '<span class="badge badge-green">VOTED</span>'
+          : '<span class="badge badge-yellow">PENDING</span>'}
+      </td>
+      <td>
+        ${!onChain && v.wallet_address
+          ? `<button class="action-btn btn-register" onclick="registerVoterOnChain('${v.wallet_address}', this)">
+               Register On-Chain
+             </button>`
+          : `<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>`}
+      </td>`;
+    tbody.appendChild(row);
+  }
+}
+
+// ── Register a voter on-chain ─────────────────────────────────
+async function registerVoterOnChain(wallet, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Signing…';
+  try {
+    const contract = await getAdminContract();
+    const tx = await contract.registerVoter(wallet);
+    btn.textContent = 'Confirming…';
+    await tx.wait();
+    btn.closest('td').previousElementSibling.innerHTML = '<span class="badge badge-green">✓ REGISTERED</span>';
+    btn.closest('td').innerHTML = '<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>';
+    adminToast(`✅ ${wallet.slice(0,6)}… registered on-chain`);
+  } catch (e) {
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'Register On-Chain';
+    adminToast('❌ Transaction failed: ' + (e.reason || e.message));
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD CANDIDATES
+// ══════════════════════════════════════════════════════════════
+async function loadCandidates() {
+  const { data: cands, error } = await _db
+    .from('candidates').select('*, elections(title)').order('approved').order('id');
+  const tbody = document.getElementById('cands-tbody');
+
+  if (error || !cands || cands.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No candidates found.</td></tr>';
+    document.getElementById('cands-count-badge').textContent = '0 candidates';
+    document.getElementById('stat-pending').textContent = '0';
+    return;
+  }
+
+  const pending = cands.filter(c => !c.approved).length;
+  document.getElementById('cands-count-badge').textContent = `${cands.length} total · ${pending} pending`;
+  document.getElementById('stat-pending').textContent = pending;
+
+  tbody.innerHTML = '';
+  cands.forEach(c => {
+    const row = document.createElement('tr');
+    const elTitle = c.elections?.title?.split('·')[0]?.trim() || `Election #${c.election_id}`;
+    row.innerHTML = `
+      <td style="color:#fff;font-weight:600">${c.name}</td>
+      <td>${c.party}</td>
+      <td style="font-size:1.2rem">${c.symbol || '—'}</td>
+      <td style="font-size:0.78rem;color:rgba(255,255,255,0.5)">${elTitle}</td>
+      <td>
+        ${c.approved
+          ? '<span class="badge badge-green">APPROVED</span>'
+          : '<span class="badge badge-yellow">PENDING</span>'}
+      </td>
+      <td>
+        ${!c.approved
+          ? `<button class="action-btn btn-approve" onclick="approveCandidate(${c.id}, this)">
+               ✓ Approve
+             </button>`
+          : `<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>`}
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ── Approve candidate in Supabase ────────────────────────────
+async function approveCandidate(id, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  const { error } = await _db.from('candidates').update({ approved: true }).eq('id', id);
+  if (error) {
+    adminToast('❌ Failed to approve candidate.');
+    btn.disabled = false; btn.textContent = '✓ Approve';
+    return;
+  }
+  const statusTd = btn.closest('td').previousElementSibling;
+  statusTd.innerHTML = '<span class="badge badge-green">APPROVED</span>';
+  btn.closest('td').innerHTML = '<span style="color:rgba(255,255,255,0.2);font-size:0.75rem">—</span>';
+  document.getElementById('stat-pending').textContent =
+    Math.max(0, parseInt(document.getElementById('stat-pending').textContent) - 1);
+  adminToast('✅ Candidate approved — they will now appear on the ballot.');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD TRANSACTIONS
+// ══════════════════════════════════════════════════════════════
+async function loadTransactions() {
+  const { data: txs, error } = await _db
+    .from('transactions').select('*').order('timestamp', { ascending: false }).limit(15);
+  const tbody = document.getElementById('tx-tbody');
+
+  if (error || !txs || txs.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No transactions yet.</td></tr>';
+    document.getElementById('tx-count-badge').textContent = '0';
+    document.getElementById('stat-tx').textContent = '0';
+    return;
+  }
+
+  document.getElementById('tx-count-badge').textContent = `${txs.length} recent`;
+  document.getElementById('stat-tx').textContent = txs.length;
+
+  tbody.innerHTML = '';
+  txs.forEach(tx => {
+    const row = document.createElement('tr');
+    const shortHash = `${tx.tx_hash.slice(0,10)}…${tx.tx_hash.slice(-6)}`;
+    const shortFrom = tx.from_address ? `${tx.from_address.slice(0,6)}…${tx.from_address.slice(-4)}` : '—';
+    row.innerHTML = `
+      <td>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;color:#00b4d8"
+              onclick="window.open('https://sepolia.etherscan.io/tx/${tx.tx_hash}','_blank')"
+              title="${tx.tx_hash}">${shortHash}</span>
+      </td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${shortFrom}</td>
+      <td style="color:rgba(255,255,255,0.4)">${tx.block_number ? '#'+tx.block_number : '—'}</td>
+      <td style="color:rgba(255,255,255,0.4);font-size:0.78rem">${fmtTs(tx.timestamp)}</td>
+      <td><span class="badge badge-green">${tx.status}</span></td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ── Logout ────────────────────────────────────────────────────
+function adminLogout() {
+  sessionStorage.removeItem('adminWallet');
+  window.location.href = 'admin.html';
+}
+
+// ── Init ──────────────────────────────────────────────────────
+(async function init() {
+  await Promise.all([loadVoters(), loadCandidates(), loadTransactions()]);
+})();
+</script>
+</body>
+</html>

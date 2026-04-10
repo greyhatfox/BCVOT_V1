@@ -5,6 +5,7 @@ const CONFIG = {
   supabaseUrl:     "https://ffrlylhphpavowhqbiex.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmcmx5bGhwaHBhdm93aHFiaWV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MDY1MjcsImV4cCI6MjA5MTM4MjUyN30.ozoyGQWs1NMGKgnKcq3OuypuhcAVexFsT5I8cD68xDM",
   contractAddress: "0x343877022eaC825e7d39dAf8915b1D03A3f15783",
+  adminAddress:    "0x60AB3a37599319955ec20e2E6861725F148f00FC",
   electionId:      1,
   // strictWalletCheck: false → warns on wallet mismatch but doesn't block the vote.
   // Set to true once you've updated the wallet_address in Supabase to match your MetaMask.
