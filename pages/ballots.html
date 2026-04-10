@@ -6,6 +6,7 @@
   <title>Blockchain Voting System V2 – Ballots</title>
   <meta name="description" content="Browse active and closed elections on the blockchain voting system." />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="../js/theme.js"></script>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
@@ -21,6 +22,10 @@
     <a href="auth.html"      id="nav-auth" style="color:rgba(255,255,255,0.35);font-size:0.8rem">Login</a>
   </div>
   <div class="nav-user">
+    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme">
+      <span class="theme-toggle-icon">☀️</span>
+      <span class="theme-toggle-label">Light</span>
+    </button>
     <div class="nav-dot"></div>
     <div>
       <div class="nav-username">GUEST</div>

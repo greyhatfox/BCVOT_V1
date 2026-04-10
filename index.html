@@ -8,8 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="js/theme.js"></script>
   <style>
-    :root {
+    :root,
+    [data-theme="dark"] {
       --primary: #00b4d8;
       --primary-dark: #0077b6;
       --accent: #06d6a0;
@@ -24,6 +26,51 @@
       --text3: #5a7a99;
       --glow: rgba(0,180,216,0.25);
     }
+
+    [data-theme="light"] {
+      --primary: #0077b6;
+      --primary-dark: #005f8a;
+      --accent: #05a87d;
+      --accent2: #0e6d90;
+      --bg-deep: #eef3f8;
+      --bg-dark: #dce8f0;
+      --surface: rgba(0,0,0,0.04);
+      --surface2: rgba(0,0,0,0.06);
+      --border: rgba(0,0,0,0.12);
+      --text: #0d1b2a;
+      --text2: #374a5e;
+      --text3: #6b839a;
+      --glow: rgba(0,119,182,0.15);
+    }
+
+    /* Canvas bg adapts too */
+    [data-theme="light"] #bg-canvas { opacity: 0.35; }
+    [data-theme="light"] body { background: var(--bg-deep); }
+    [data-theme="light"] .steps-section { background: rgba(220,232,240,0.8); }
+    [data-theme="light"] .step-card { background: #fff; border-color: rgba(0,0,0,0.1); }
+    [data-theme="light"] footer { border-color: rgba(0,0,0,0.12); color: #4a6070; }
+    [data-theme="light"] .hero-eyebrow { color: var(--primary); background: rgba(0,119,182,0.08); border-color: rgba(0,119,182,0.25); }
+    [data-theme="light"] .feature-pill { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: #374a5e; }
+    [data-theme="light"] .nav-badge { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.15); color: #374a5e; }
+
+    /* Theme toggle on index */
+    .idx-theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .idx-theme-toggle:hover { background: var(--surface); border-color: var(--primary); color: var(--primary); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -414,9 +461,15 @@
   <!-- NAV -->
   <header>
     <div class="logo">S<span>W</span>EVOT</div>
-    <div class="nav-badge">
-      <span class="dot"></span>
-      Blockchain-Secured Voting
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="nav-badge">
+        <span class="dot"></span>
+        Blockchain-Secured Voting
+      </div>
+      <button class="idx-theme-toggle theme-toggle" onclick="toggleTheme()" title="Switch theme" aria-label="Switch theme">
+        <span class="theme-toggle-icon">☀️</span>
+        <span class="theme-toggle-label">Light</span>
+      </button>
     </div>
   </header>
 

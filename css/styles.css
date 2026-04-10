@@ -1,4 +1,33 @@
-:root {
+/* ──────────── DARK MODE (DEFAULT) ──────────── */
+  :root,
+  [data-theme="dark"] {
+    --bg: #0e1421;
+    --surface: #131c2e;
+    --surface2: #1a2540;
+    --border: rgba(255,255,255,0.1);
+    --primary: #00b4d8;
+    --primary-dark: #0077b6;
+    --primary-glow: rgba(0,180,216,0.18);
+    --accent: #06d6a0;
+    --accent2: #118ab2;
+    --danger: #ef233c;
+    --text: #e8f1fb;
+    --text1: #e8f1fb;
+    --text2: #94afc8;
+    --text3: #5a7a99;
+    --confirmed: #06d6a0;
+    --eligible: #06d6a0;
+    --nav-bg: #080f1c;
+    --nav-text: #c8daea;
+    --card-shadow: 0 4px 24px rgba(0,0,0,0.35);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --auth-page-bg: linear-gradient(135deg, #0a1628 0%, #0d1f38 50%, #0a1628 100%);
+    --reg-page-bg: linear-gradient(135deg, #0a1628, #0d1f38, #0a1628);
+  }
+
+  /* ──────────── LIGHT MODE ──────────── */
+  [data-theme="light"] {
     --bg: #f0f4f8;
     --surface: #ffffff;
     --surface2: #f7fafc;
@@ -10,6 +39,7 @@
     --accent2: #118ab2;
     --danger: #ef233c;
     --text: #0d1b2a;
+    --text1: #0d1b2a;
     --text2: #4a5568;
     --text3: #718096;
     --confirmed: #06d6a0;
@@ -19,7 +49,16 @@
     --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
     --radius: 14px;
     --radius-sm: 8px;
+    --auth-page-bg: linear-gradient(135deg, #e8f4f8 0%, #f0f8fc 50%, #e8f0f8 100%);
+    --reg-page-bg: linear-gradient(135deg, #e8f4f8, #f0f8fc, #e8f0f8);
   }
+
+  /* Smooth theme transitions */
+  *, *::before, *::after {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease, box-shadow 0.25s ease;
+  }
+  /* Exclude elements where transitions look wrong */
+  nav, .sidebar, .fingerprint-ring::before { transition: none !important; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -31,6 +70,31 @@
     display: flex;
     flex-direction: column;
   }
+
+  /* ──────────── THEME TOGGLE BUTTON ──────────── */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    background: rgba(255,255,255,0.07);
+    color: var(--nav-text);
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s !important;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.3);
+  }
+  .theme-toggle-icon { font-size: 0.9rem; line-height: 1; }
 
   /* ──────────── NAV ──────────── */
   nav {
@@ -423,7 +487,7 @@
   /* ──────────── AUTH PAGE ──────────── */
   .auth-page {
     min-height: calc(100vh - 60px);
-    background: linear-gradient(135deg, #e8f4f8 0%, #f0f8fc 50%, #e8f0f8 100%);
+    background: var(--auth-page-bg);
     display: flex;
     align-items: center;
     justify-content: center;
