@@ -26,7 +26,7 @@
   };
 
   /** Update all toggle button icons/labels on the page */
-  function syncToggleButtons() {
+  window.syncToggleButtons = function syncToggleButtons() {
     const isDark = document.documentElement.getAttribute('data-theme') === DARK;
     document.querySelectorAll('.theme-toggle').forEach(btn => {
       btn.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
@@ -36,8 +36,8 @@
       const label = btn.querySelector('.theme-toggle-label');
       if (label) label.textContent = isDark ? 'Light' : 'Dark';
     });
-  }
+  };
 
   // Sync once DOM is ready
-  document.addEventListener('DOMContentLoaded', syncToggleButtons);
+  document.addEventListener('DOMContentLoaded', window.syncToggleButtons);
 })();

@@ -147,19 +147,4 @@ async function doAuth() {
   }
 }
 
-// ── Populate nav bar with session voter (called on every page) ──
-function populateNav(voter) {
-  if (!voter) return;
-  const nameEl   = document.querySelector('.nav-username');
-  const avatarEl = document.querySelector('.nav-avatar');
-  const initials = voter.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  if (nameEl)   nameEl.textContent   = voter.name.toUpperCase();
-  if (avatarEl) avatarEl.textContent = initials;
-}
-
-// On every page load — if a session exists, update nav
-document.addEventListener('DOMContentLoaded', () => {
-  const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
-  populateNav(voter);
-  // If on auth page and already logged in, offer quick link (don't force redirect)
-});
+// ── Note: nav population and auth redirect handled by script.js DOMContentLoaded ──

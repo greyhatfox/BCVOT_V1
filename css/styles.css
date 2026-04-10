@@ -144,7 +144,8 @@
   .nav-user {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
   }
   .nav-avatar {
     width: 34px; height: 34px;
@@ -153,15 +154,19 @@
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; color: #fff; font-size: 0.8rem;
     border: 2px solid var(--primary);
+    flex-shrink: 0;
   }
   .nav-username {
-    font-size: 0.875rem; font-weight: 600; color: #fff;
+    font-size: 0.82rem; font-weight: 600; color: #fff;
+    white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis;
   }
+  .nav-user-info { line-height: 1; }
   .verified-badge {
-    font-size: 0.7rem; color: var(--accent); font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 0.65rem; color: var(--accent); font-weight: 700;
+    letter-spacing: 0.5px; margin-top: 2px;
   }
-  .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .nav-logout-btn:hover { background: rgba(239,35,60,0.22) !important; }
 
   /* ──────────── PAGE SHELL ──────────── */
   .page { display: none; flex: 1; }
