@@ -106,7 +106,6 @@
   const { data: txs, error } = await db
     .from('transactions')
     .select('*')
-    .eq('from_address', voter.wallet_address ? voter.wallet_address.toLowerCase() : '')
     .order('timestamp', { ascending: false });
 
   const tbody = document.getElementById('history-tx-body');
@@ -132,6 +131,9 @@
     const row = document.createElement('tr');
     const shortHash = `${tx.tx_hash.slice(0,10)}…${tx.tx_hash.slice(-6)}`;
     const shortFrom = tx.from_address ? `${tx.from_address.slice(0,6)}…${tx.from_address.slice(-4)}` : '—';
+    // Highlight the logged-in voter's own transactions
+    const isOwn = voter.wallet_address && tx.from_address === voter.wallet_address.toLowerCase();
+    row.style.background = isOwn ? 'rgba(6,214,160,0.04)' : '';
     row.innerHTML = `
       <td style="padding:12px 20px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -140,6 +142,7 @@
                 title="${tx.tx_hash}"
                 style="cursor:pointer"
                 onclick="window.open('https://sepolia.etherscan.io/tx/${tx.tx_hash}','_blank')">${shortHash}</span>
+          ${isOwn ? '<span style="font-size:0.65rem;background:rgba(6,214,160,0.15);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:700">YOU</span>' : ''}
         </div>
       </td>
       <td class="tx-time">${tx.block_number ? '#' + tx.block_number : '—'}</td>
@@ -149,7 +152,7 @@
     tbody.appendChild(row);
   });
 
-  // Show etherscan link count
+  // Show total count
   document.getElementById('block-display').textContent = `${txs.length} transaction${txs.length !== 1 ? 's' : ''} · Sepolia`;
 })();
 </script>
