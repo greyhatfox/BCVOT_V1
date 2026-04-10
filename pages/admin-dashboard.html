@@ -217,6 +217,54 @@
       <div class="stat-value" id="stat-tx">—</div>
     </div>
   </div>
+  <!-- ══════════════════════════════════════
+       ELECTIONS MANAGEMENT
+  ══════════════════════════════════════ -->
+  <div class="admin-section">
+    <div class="section-header">
+      <span class="section-title">🗳️ ELECTIONS MANAGEMENT</span>
+      <span class="section-badge" id="elections-count-badge">Loading…</span>
+    </div>
+    
+    <!-- Create Election Form -->
+    <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.015);">
+      <h3 style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin:0 0 12px 0;letter-spacing:1px;">CREATE NEW ELECTION</h3>
+      <div style="display:flex;gap:16px;align-items:flex-end;">
+        <div style="flex:2;">
+          <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Election Title</label>
+          <input type="text" id="new-election-title" placeholder="e.g. Municipal Election 2026" style="display:block;width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Constituency ID</label>
+          <input type="number" id="new-election-constituency" placeholder="e.g. 42" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="display:block;width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Duration (Days)</label>
+          <input type="number" id="new-election-duration" value="30" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="display:block;width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
+        </div>
+        <div>
+          <button class="action-btn btn-approve" onclick="createNewElection(this)" style="padding:11px 20px;">
+            + Deploy to Chain
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Constituency</th>
+          <th>End Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="elections-tbody">
+        <tr class="loading-row"><td colspan="5">⏳ Loading elections…</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- ══════════════════════════════════════
        VOTERS TABLE
@@ -333,6 +381,123 @@ async function getAdminContract() {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer   = await provider.getSigner();
   return new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, signer);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD ELECTIONS + CREATE ELECTION
+// ══════════════════════════════════════════════════════════════
+async function loadElections() {
+  const { data: elections, error } = await _db.from('elections').select('*').order('id', { ascending: true });
+  const tbody = document.getElementById('elections-tbody');
+
+  if (error || !elections || elections.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No elections created yet.</td></tr>';
+    document.getElementById('elections-count-badge').textContent = '0 elections';
+    return;
+  }
+
+  document.getElementById('elections-count-badge').textContent = `${elections.length} total`;
+
+  tbody.innerHTML = '';
+  for (const e of elections) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td style="color:#fff;font-weight:600">#${e.id}</td>
+      <td style="color:#fff;font-weight:600">${e.title}</td>
+      <td>C-${e.constituency}</td>
+      <td style="color:rgba(255,255,255,0.4);font-size:0.78rem">${fmtTs(e.end_date)}</td>
+      <td>
+        ${e.status === 'active'
+          ? '<span class="badge badge-green">ACTIVE</span>'
+          : '<span class="badge badge-red">CLOSED</span>'}
+      </td>`;
+    tbody.appendChild(row);
+  }
+}
+
+async function createNewElection(btn) {
+  const titleInput = document.getElementById('new-election-title');
+  const constInput = document.getElementById('new-election-constituency');
+  const durInput = document.getElementById('new-election-duration');
+  
+  const title = titleInput.value.trim();
+  const constituency = parseInt(constInput.value);
+  const durationDays = parseInt(durInput.value);
+
+  if (!title) { adminToast('❌ Please enter an election title.'); return; }
+  if (!constituency || isNaN(constituency)) { adminToast('❌ Please enter a valid constituency ID.'); return; }
+  if (!durationDays || isNaN(durationDays) || durationDays <= 0) { adminToast('❌ Please enter a valid duration.'); return; }
+
+  const durationSec = durationDays * 24 * 60 * 60;
+  
+  btn.disabled = true;
+  btn.textContent = 'Awaiting Signature…';
+
+  let onChainId;
+  try {
+    const contract = await getAdminContract();
+    // 1. Blockchain Tx
+    const tx = await contract.createElection(title, durationSec, [], []);
+    btn.textContent = 'Confirming on Chain…';
+    const receipt = await tx.wait();
+
+    // 2. Parse Event to get electionId
+    const iface = contract.interface;
+    for (const log of receipt.logs) {
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed && parsed.name === 'ElectionCreated') {
+          onChainId = Number(parsed.args.electionId);
+          break;
+        }
+      } catch (_) {}
+    }
+
+    if (!onChainId) {
+      throw new Error("Failed to extract Election ID from blockchain event.");
+    }
+
+    adminToast(`✅ Election ${onChainId} created on-chain. Syncing database...`);
+
+  } catch (err) {
+    console.error('[Create Election] Blockchain error:', err);
+    adminToast('❌ Blockchain transaction failed: ' + (err.reason || err.message));
+    btn.disabled = false; btn.textContent = '+ Deploy to Chain';
+    return;
+  }
+
+  // 3. Blockchain succeeded -> Insert into Supabase with explicit matching ID
+  btn.textContent = 'Saving to DB…';
+  
+  // Calculate end_date matching the duration
+  const endDate = new Date(Date.now() + (durationSec * 1000)).toISOString();
+
+  const { error } = await _db.from('elections').insert({
+    id: onChainId,
+    title: title,
+    constituency: constituency,
+    status: 'active',
+    end_date: endDate
+  });
+
+  if (error) {
+    console.error('[Create Election] Supabase error:', error);
+    adminToast('⚠️ On-chain OK, but Supabase insert failed.');
+    btn.disabled = false; btn.textContent = '+ Deploy to Chain';
+    return;
+  }
+
+  adminToast(`🎉 Success! Election #${onChainId} created completely.`);
+  
+  // Reset inputs
+  titleInput.value = '';
+  constInput.value = '';
+  durInput.value = '30';
+  
+  // Reset button & reload table
+  btn.disabled = false;
+  btn.textContent = '+ Deploy to Chain';
+  await loadElections();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -585,7 +750,7 @@ function adminLogout() {
 
 // ── Init ──────────────────────────────────────────────────────
 (async function init() {
-  await Promise.all([loadVoters(), loadCandidates(), loadTransactions()]);
+  await Promise.all([loadElections(), loadVoters(), loadCandidates(), loadTransactions()]);
 })();
 </script>
 </body>
