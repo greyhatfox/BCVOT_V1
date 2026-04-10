@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blockchain Voting System V2 – Register</title>
+  <meta name="description" content="Register as a voter or apply as a candidate for the blockchain voting system." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    /* ── Registration page specific styles ───────────────── */
+    .reg-card {
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+      width: 520px;
+      max-width: 95vw;
+      position: relative;
+      overflow: hidden;
+    }
+    .reg-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent2));
+    }
+
+    /* ── Tabs ─────────────────────────────────────────────── */
+    .reg-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .reg-tab {
+      background: none;
+      border: none;
+      padding: 18px 12px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text3);
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+    }
+    .reg-tab:hover { color: var(--primary); background: var(--primary-glow); }
+    .reg-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(0,180,216,0.04);
+    }
+
+    /* ── Form body ────────────────────────────────────────── */
+    .reg-body { padding: 28px 36px 32px; }
+
+    .reg-section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text3);
+      text-transform: uppercase;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .reg-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Wallet row ───────────────────────────────────────── */
+    .wallet-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .wallet-row .input-group { flex: 1; margin-bottom: 0; }
+    .mm-btn {
+      flex-shrink: 0;
+      height: 44px;
+      padding: 0 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: rgba(0,180,216,0.06);
+      color: var(--primary);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .mm-btn:hover { background: var(--primary-glow); border-color: var(--primary); }
+
+    /* ── Symbol picker row ────────────────────────────────── */
+    .symbol-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .sym-chip {
+      width: 38px; height: 38px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sym-chip:hover, .sym-chip.selected {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+      transform: scale(1.1);
+    }
+
+    /* ── Pending badge ────────────────────────────────────── */
+    .pending-note {
+      background: rgba(255,190,11,0.08);
+      border: 1px solid rgba(255,190,11,0.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: #b7860a;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* ── Messages ─────────────────────────────────────────── */
+    .reg-msg {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    #reg-error {
+      background: rgba(239,35,60,0.07);
+      border: 1px solid rgba(239,35,60,0.25);
+      color: var(--danger);
+    }
+    #reg-success {
+      background: rgba(6,214,160,0.08);
+      border: 1px solid rgba(6,214,160,0.3);
+      color: #0d9c73;
+    }
+
+    /* ── Submit button variant ────────────────────────────── */
+    .reg-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .reg-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+    .reg-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .reg-btn-voter { background: linear-gradient(90deg, var(--primary-dark), var(--primary)); color: #fff; }
+    .reg-btn-cand  { background: linear-gradient(90deg, var(--accent2), var(--accent));     color: #fff; }
+
+    .login-link {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text3);
+      margin-top: 16px;
+    }
+    .login-link a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .login-link a:hover { text-decoration: underline; }
+
+    textarea.input-field {
+      resize: vertical;
+      min-height: 72px;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">BLOCKCHAIN <span>VOTING</span> SYSTEM V2</div>
+  <div class="nav-links">
+    <a href="dashboard.html" id="nav-dashboard">Dashboard</a>
+    <a href="ballots.html"   id="nav-ballots">Ballots</a>
+    <a href="history.html"   id="nav-history">History</a>
+    <a href="results.html"   id="nav-results">Live Results</a>
+    <a href="register.html"  id="nav-register" class="active">Register</a>
+    <a href="auth.html"      id="nav-auth" style="color:rgba(255,255,255,0.35);font-size:0.8rem">Login</a>
+  </div>
+  <div class="nav-user">
+    <div class="nav-dot"></div>
+    <div>
+      <div class="nav-username">GUEST</div>
+      <div class="verified-badge">● UNVERIFIED</div>
+    </div>
+    <div class="nav-avatar">?</div>
+  </div>
+</nav>
+
+<div style="flex:1;background:linear-gradient(135deg,#e8f4f8,#f0f8fc,#e8f0f8);display:flex;align-items:center;justify-content:center;padding:40px 20px;">
+  <div class="reg-card">
+
+    <!-- ── Tabs ── -->
+    <div class="reg-tabs">
+      <button class="reg-tab active" id="tab-voter"     onclick="switchTab('voter')">🗳️ VOTER REGISTRATION</button>
+      <button class="reg-tab"        id="tab-candidate" onclick="switchTab('candidate')">🏆 CANDIDATE APPLICATION</button>
+    </div>
+
+    <div class="reg-body">
+
+      <!-- ── Shared messages ── -->
+      <div class="reg-msg" id="reg-error"></div>
+      <div class="reg-msg" id="reg-success"></div>
+
+      <!-- ════════════════════════════════════════════════════
+           VOTER REGISTRATION FORM
+           ════════════════════════════════════════════════════ -->
+      <div id="form-voter">
+        <div class="reg-section-label">Personal Information</div>
+
+        <div class="input-group">
+          <label class="input-label" for="voter-name">Full Name</label>
+          <input type="text" id="voter-name" class="input-field"
+                 placeholder="Irfan Ahmed Mohammad" style="letter-spacing:0" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="voter-aadhaar">12-Digit Aadhaar Number</label>
+          <input type="text" id="voter-aadhaar" class="input-field"
+                 placeholder="XXXX-XXXX-XXXX" maxlength="14"
+                 oninput="formatAadhaar(this)" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="voter-constituency">Constituency Number</label>
+          <input type="number" id="voter-constituency" class="input-field"
+                 placeholder="e.g. 42" min="1" style="letter-spacing:0" />
+        </div>
+
+        <div class="reg-section-label" style="margin-top:20px">Wallet Binding (Optional)</div>
+
+        <div class="wallet-row">
+          <div class="input-group">
+            <label class="input-label" for="wallet-input">MetaMask Wallet Address</label>
+            <input type="text" id="wallet-input" class="input-field"
+                   placeholder="0x… (leave blank if you don't have one yet)"
+                   style="font-size:0.78rem" />
+          </div>
+          <button class="mm-btn" id="connect-mm-btn" onclick="connectMetaMask()">🦊 Auto-Fill</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:-12px;margin-bottom:18px">
+          You can add or update your wallet later via the Supabase table editor.
+        </div>
+
+        <button class="reg-btn reg-btn-voter" id="voter-submit-btn" onclick="registerVoter()">
+          REGISTER AS VOTER
+        </button>
+
+        <div class="login-link">
+          Already registered? <a href="auth.html">Log in here</a>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════
+           CANDIDATE APPLICATION FORM
+           ════════════════════════════════════════════════════ -->
+      <div id="form-candidate" style="display:none">
+        <div class="pending-note">
+          ⚠️ <strong>All candidate applications require admin approval</strong> before appearing on the ballot.
+          You will be visible to voters only after an admin sets your <code>approved</code> flag to <code>true</code> in the database.
+        </div>
+
+        <div class="reg-section-label">Candidate Details</div>
+
+        <div class="input-group">
+          <label class="input-label" for="cand-name">Full Name</label>
+          <input type="text" id="cand-name" class="input-field"
+                 placeholder="e.g. Naman Jain" style="letter-spacing:0" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="cand-party">Party / Alliance Name</label>
+          <input type="text" id="cand-party" class="input-field"
+                 placeholder="e.g. Progressive Party" style="letter-spacing:0" />
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="cand-symbol">Party Symbol (emoji)</label>
+          <input type="text" id="cand-symbol" class="input-field"
+                 placeholder="Click a symbol below or type your own"
+                 style="font-size:1.2rem;letter-spacing:4px" maxlength="4" />
+          <!-- Quick symbol picker -->
+          <div class="symbol-row" id="symbol-picker">
+            <div class="sym-chip" onclick="pickSymbol('🌿')">🌿</div>
+            <div class="sym-chip" onclick="pickSymbol('⭐')">⭐</div>
+            <div class="sym-chip" onclick="pickSymbol('🔥')">🔥</div>
+            <div class="sym-chip" onclick="pickSymbol('💪')">💪</div>
+            <div class="sym-chip" onclick="pickSymbol('🌙')">🌙</div>
+            <div class="sym-chip" onclick="pickSymbol('🦁')">🦁</div>
+            <div class="sym-chip" onclick="pickSymbol('🌸')">🌸</div>
+            <div class="sym-chip" onclick="pickSymbol('⚡')">⚡</div>
+            <div class="sym-chip" onclick="pickSymbol('🕊️')">🕊️</div>
+            <div class="sym-chip" onclick="pickSymbol('∞')">∞</div>
+            <div class="sym-chip" onclick="pickSymbol('🏛️')">🏛️</div>
+            <div class="sym-chip" onclick="pickSymbol('🌐')">🌐</div>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="cand-election">Election to Contest</label>
+          <select id="cand-election" class="input-field" style="letter-spacing:0;cursor:pointer">
+            <option value="">Loading elections…</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" for="cand-manifesto">Brief Manifesto / Vision (optional)</label>
+          <textarea id="cand-manifesto" class="input-field"
+                    placeholder="Describe your vision for the constituency in 2-3 sentences…"></textarea>
+        </div>
+
+        <button class="reg-btn reg-btn-cand" id="cand-submit-btn" onclick="registerCandidate()">
+          APPLY AS CANDIDATE
+        </button>
+
+        <div class="login-link">
+          Already a verified voter? <a href="auth.html">Log in here</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/register.js"></script>
+<script>
+  // Symbol picker helper
+  function pickSymbol(sym) {
+    document.getElementById('cand-symbol').value = sym;
+    document.querySelectorAll('.sym-chip').forEach(c => c.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+  }
+</script>
+</body>
+</html>
