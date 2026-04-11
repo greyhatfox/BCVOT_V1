@@ -119,8 +119,8 @@
           ${isActive ? `Ends: <strong>${endDate}</strong>` : `Ended: <strong>${endDate}</strong>`}
         </div>
         ${isActive
-          ? `<button class="cast-vote-btn" style="margin-top:8px" onclick="location.href='dashboard.html'">GO TO BALLOT →</button>`
-          : `<div style="font-size:0.78rem;color:var(--text2);margin-top:4px">Voted · Results Published</div>`
+          ? `<button class="cast-vote-btn" style="margin-top:8px" onclick="goToElection(${el.id}, 'active')">GO TO BALLOT →</button>`
+          : `<button class="cast-vote-btn" style="margin-top:8px;background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.2)" onclick="goToElection(${el.id}, 'closed')">VIEW RESULTS →</button>`
         }
       </div>`;
     grid.appendChild(card);

@@ -48,10 +48,11 @@ let _cachedCandidates = [];
 //  DATA FETCHERS
 // ══════════════════════════════════════════════════════════════
 async function loadCandidatesFromSupabase() {
+  const eid = getCurrentElectionId();
   const { data, error } = await _sbResults
     .from('candidates')
     .select('id, name, party, symbol')
-    .eq('election_id', CONFIG.electionId)
+    .eq('election_id', eid)
     .eq('approved', true)
     .order('id', { ascending: true });
   if (error || !data) return [];
@@ -61,7 +62,8 @@ async function loadCandidatesFromSupabase() {
 async function fetchOnChainCounts() {
   const provider = await getROProvider();
   const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, provider);
-  const results  = await contract.getResults(CONFIG.electionId);
+  const eid = getCurrentElectionId();
+  const results  = await contract.getResults(eid);
   return results.map(r => Number(r.voteCount));
 }
 
@@ -260,7 +262,10 @@ async function loadResults() {
   fetchRecentTx();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof injectElectionDropdown === 'function') {
+    await injectElectionDropdown();
+  }
   loadResults();
   setInterval(loadResults, 10000); // every 10s
 });

@@ -189,3 +189,61 @@ async function loadElectionsForDropdown() {
       (data || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('');
   } catch(_) {}
 }
+
+// ── Global Multi-Election Helpers ─────────────────────────────────
+function getCurrentElectionId() {
+  return parseInt(sessionStorage.getItem('selectedElectionId')) || CONFIG.electionId || 1;
+}
+
+function goToElection(id, status) {
+  sessionStorage.setItem('selectedElectionId', id);
+  if (status === 'active') window.location.href = 'dashboard.html';
+  else window.location.href = 'results.html';
+}
+
+async function injectElectionDropdown() {
+  const container = document.getElementById('election-dropdown-container');
+  if (!container) return;
+
+  const db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  const { data: elections } = await db.from('elections').select('id, title, status').order('id', { ascending: true });
+  
+  if (!elections || elections.length === 0) return;
+  
+  let currentId = getCurrentElectionId();
+  let hasMatch = false;
+  
+  const select = document.createElement('select');
+  select.className = 'election-select';
+  select.style.cssText = "background:rgba(255,255,255,0.05);color:var(--text1);border:1px solid rgba(255,255,255,0.1);padding:6px 12px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;outline:none;";
+  
+  elections.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = `${e.title.split('·')[0].trim()} ${e.status !== 'active' ? '(Closed)' : ''}`;
+    opt.style.background = '#0a0e1a';
+    opt.style.color = '#fff';
+    if (e.id === currentId) {
+      opt.selected = true;
+      hasMatch = true;
+    }
+    select.appendChild(opt);
+  });
+  
+  if (!hasMatch && elections.length > 0) {
+    currentId = elections[0].id;
+    select.value = currentId;
+    sessionStorage.setItem('selectedElectionId', currentId);
+  }
+
+  // Also expose the current election in a global variable for immediate access
+  window._currentElectionData = elections.find(e => e.id === currentId);
+  
+  select.addEventListener('change', (e) => {
+    sessionStorage.setItem('selectedElectionId', e.target.value);
+    window.location.reload();
+  });
+  
+  container.innerHTML = '';
+  container.appendChild(select);
+}

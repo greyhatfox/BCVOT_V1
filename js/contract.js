@@ -40,6 +40,31 @@ async function loadDashboard() {
 
   // ── Nav ──
   populateNav(voter);
+  
+  // ── Inject Multiple Elections Dropdown ──
+  if (typeof injectElectionDropdown === 'function') {
+    await injectElectionDropdown();
+  }
+
+  // ── Update Ballot Title Dynamically ──
+  if (window._currentElectionData) {
+    const titleEl = document.getElementById('ballot-title');
+    if (titleEl) {
+      const parts = window._currentElectionData.title.split('·');
+      titleEl.innerHTML = `${parts[0].trim()}<br>${parts.slice(1).join('·').trim() || ''}`;
+    }
+    
+    // Disable cast vote if closed
+    if (window._currentElectionData.status !== 'active') {
+      const btn = document.querySelector('.cast-vote-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'ELECTION CLOSED';
+        btn.style.opacity = '0.55';
+        btn.style.cursor = 'default';
+      }
+    }
+  }
 
   // ── Personal card ──
   const nameEl    = document.getElementById('voter-name-display');
@@ -75,10 +100,11 @@ async function loadDashboard() {
 // ── Load candidates from Supabase and render cards ────────────
 async function loadCandidates(voter) {
   const db = getSupabase();
+  const eid = getCurrentElectionId();
   const { data: candidates, error } = await db
     .from('candidates')
     .select('*')
-    .eq('election_id', CONFIG.electionId)
+    .eq('election_id', eid)
     .eq('approved', true)
     .order('onchain_id', { ascending: true });   // sort by on-chain order
 
@@ -124,7 +150,8 @@ async function checkOnChainVotedState(voter) {
     if (!accounts || accounts.length === 0) return;
     const address  = accounts[0].address;
     const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, provider);
-    const voted    = await contract.hasVoted(CONFIG.electionId, address);
+    const eid = getCurrentElectionId();
+    const voted    = await contract.hasVoted(eid, address);
     if (voted && !voter.has_voted) {
       // On-chain says voted but Supabase hasn't caught up — update UI
       voter.has_voted    = true;
@@ -241,10 +268,11 @@ async function castVote() {
     }
 
     // ── 3. Check on-chain hasVoted ──
+    const eid = getCurrentElectionId();
     updateBtn('CHECKING ELIGIBILITY…');
     const provider    = new ethers.BrowserProvider(window.ethereum);
     const contractRO  = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, provider);
-    const onChainVoted = await contractRO.hasVoted(CONFIG.electionId, address);
+    const onChainVoted = await contractRO.hasVoted(eid, address);
     if (onChainVoted) {
       alert('Your wallet has already voted in this election on-chain.');
       updateVotedState(voter);
@@ -265,7 +293,7 @@ async function castVote() {
       if (btn) { btn.disabled = false; updateBtn('CAST VOTE'); }
       return;
     }
-    const tx = await contract.castVote(CONFIG.electionId, onChainCandId);
+    const tx = await contract.castVote(eid, onChainCandId);
 
     updateBtn('CONFIRMING ON BLOCKCHAIN…');
     const receipt = await tx.wait();
@@ -276,7 +304,7 @@ async function castVote() {
       tx_hash:      receipt.hash,
       block_number: receipt.blockNumber.toString(),
       from_address: address.toLowerCase(),
-      election_id:  CONFIG.electionId,
+      election_id:  eid,
       status:       'CONFIRMED'
     });
 
