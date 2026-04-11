@@ -48,14 +48,19 @@ async function loadDashboard() {
 
   // ── Update Ballot Title Dynamically ──
   if (window._currentElectionData) {
+    const eData = window._currentElectionData;
     const titleEl = document.getElementById('ballot-title');
     if (titleEl) {
-      const parts = window._currentElectionData.title.split('·');
-      titleEl.innerHTML = `${parts[0].trim()}<br>${parts.slice(1).join('·').trim() || ''}`;
+      const constLabel = eData.constituency === 0
+        ? '〈ALL CONSTITUENCIES〉'
+        : `CONSTITUENCY ${eData.constituency}`;
+      titleEl.innerHTML = `${eData.title.split('·')[0].trim()}
+        <span style="display:inline-block;margin-left:8px;padding:2px 9px;border-radius:12px;font-size:0.65rem;font-weight:700;letter-spacing:1px;
+               background:rgba(0,180,216,0.12);color:var(--primary);border:1px solid rgba(0,180,216,0.25);vertical-align:middle">${constLabel}</span>`;
     }
     
     // Disable cast vote if closed
-    if (window._currentElectionData.status !== 'active') {
+    if (eData.status !== 'active') {
       const btn = document.querySelector('.cast-vote-btn');
       if (btn) {
         btn.disabled = true;
@@ -371,13 +376,37 @@ async function loadCandidateElections() {
   const sel = document.getElementById('cand-election');
   if (!sel) return;
   const db = getSupabase();
-  const { data: elections, error } = await db.from('elections').select('id, title').eq('status','active').order('id', { ascending: true });
+
+  // Get voter's constituency for filtering
+  const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
+  const voterConst = voter ? parseInt(voter.constituency) : null;
+
+  const { data: elections, error } = await db
+    .from('elections')
+    .select('id, title, constituency')
+    .eq('status','active')
+    .order('id', { ascending: true });
+
   if (error || !elections || elections.length === 0) {
-    sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">No active elections available</option>';
+    sel.innerHTML = '<option value="" style="background:var(--surface2);color:var(--text);">No active elections available</option>';
     return;
   }
-  sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">Select active election…</option>' + 
-    elections.map(e => `<option value="${e.id}" style="background:#0a0e1a;color:#fff;">${e.title.split('·')[0].trim()}</option>`).join('');
+
+  // Filter: show ALL elections and elections matching voter's constituency
+  const eligible = elections.filter(e =>
+    e.constituency === 0 || (voterConst && e.constituency === voterConst)
+  );
+
+  if (eligible.length === 0) {
+    sel.innerHTML = `<option value="" style="background:var(--surface2);color:var(--text);">No elections for your constituency</option>`;
+    return;
+  }
+
+  sel.innerHTML = '<option value="" style="background:var(--surface2);color:var(--text);">Select active election…</option>' + 
+    eligible.map(e => {
+      const constTag = e.constituency === 0 ? ' — 〈ALL〉' : ` — C-${e.constituency}`;
+      return `<option value="${e.id}" style="background:var(--surface2);color:var(--text);">${e.title.split('·')[0].trim()}${constTag}</option>`;
+    }).join('');
 }
 
 async function applyForCandidacy() {

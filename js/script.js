@@ -206,7 +206,10 @@ async function injectElectionDropdown() {
   if (!container) return;
 
   const db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-  const { data: elections } = await db.from('elections').select('id, title, status').order('id', { ascending: true });
+  const { data: elections } = await db
+    .from('elections')
+    .select('id, title, status, constituency')
+    .order('id', { ascending: true });
   
   if (!elections || elections.length === 0) return;
   
@@ -220,7 +223,10 @@ async function injectElectionDropdown() {
   elections.forEach(e => {
     const opt = document.createElement('option');
     opt.value = e.id;
-    opt.textContent = `${e.title.split('·')[0].trim()} ${e.status !== 'active' ? '(Closed)' : ''}`;
+    // Show constituency tag: 0 = ALL, otherwise C-N
+    const constTag = e.constituency === 0 ? '— 〈ALL〉' : `— C-${e.constituency}`;
+    const statusTag = e.status !== 'active' ? ' (Closed)' : '';
+    opt.textContent = `${e.title.split('·')[0].trim()} ${constTag}${statusTag}`;
     opt.style.background = '#0a0e1a';
     opt.style.color = '#fff';
     if (e.id === currentId) {
@@ -236,7 +242,7 @@ async function injectElectionDropdown() {
     sessionStorage.setItem('selectedElectionId', currentId);
   }
 
-  // Also expose the current election in a global variable for immediate access
+  // Expose full election data (including constituency) for use in titles / map
   window._currentElectionData = elections.find(e => e.id === currentId);
   
   select.addEventListener('change', (e) => {

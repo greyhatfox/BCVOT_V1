@@ -268,6 +268,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (typeof injectElectionDropdown === 'function') {
     await injectElectionDropdown();
   }
+
+  // \u2500\u2500 Populate constituency badge + map label from loaded election data \u2500\u2500
+  if (window._currentElectionData) {
+    const eData = window._currentElectionData;
+    const constLabel = eData.constituency === 0
+      ? '\u3008ALL CONSTITUENCIES\u3009'
+      : `CONSTITUENCY ${eData.constituency}`;
+
+    const badge = document.getElementById('results-const-badge');
+    if (badge) { badge.textContent = constLabel; badge.style.display = 'inline-block'; }
+
+    const mapLbl = document.getElementById('map-label');
+    if (mapLbl) mapLbl.textContent = `${constLabel} \u00b7 ${eData.title.split('\u00b7')[0].trim()}`;
+  }
+
   loadResults();
   setInterval(loadResults, 10000); // every 10s
 });
