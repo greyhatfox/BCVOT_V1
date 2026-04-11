@@ -163,6 +163,53 @@
       line-height: 1.5;
     }
 
+    .admin-password-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .admin-password-input {
+      width: 100%;
+      padding: 13px 44px 13px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      letter-spacing: 2px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+    }
+    .admin-password-input::placeholder { letter-spacing: 1px; color: rgba(255,255,255,0.25); }
+    .admin-password-input:focus {
+      border-color: rgba(239,35,60,0.5);
+      box-shadow: 0 0 0 3px rgba(239,35,60,0.1);
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: rgba(255,255,255,0.35);
+      font-size: 1rem;
+      padding: 4px;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: rgba(255,255,255,0.7); }
+    .pw-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+      display: block;
+    }
     .voter-link {
       text-align: center;
       font-size: 0.78rem;
@@ -199,6 +246,15 @@
       <span class="wallet-address" id="wallet-addr-display">No wallet connected</span>
     </div>
 
+    <!-- Password field -->
+    <label class="pw-label">Admin Password</label>
+    <div class="admin-password-wrap">
+      <input type="password" id="admin-password" class="admin-password-input"
+             placeholder="Enter admin password…"
+             onkeydown="if(event.key==='Enter') adminLogin()" />
+      <button class="pw-toggle" type="button" onclick="togglePwVisibility()" title="Show/hide">👁</button>
+    </div>
+
     <!-- Connect button -->
     <button class="connect-btn" id="admin-connect-btn" onclick="adminLogin()">
       🦊 &nbsp;CONNECT AS ADMIN
@@ -216,18 +272,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
 <script>
 async function adminLogin() {
-  const btn       = document.getElementById('admin-connect-btn');
-  const errEl     = document.getElementById('admin-error');
-  const dot       = document.getElementById('wallet-dot');
-  const addrEl    = document.getElementById('wallet-addr-display');
+  const btn    = document.getElementById('admin-connect-btn');
+  const errEl  = document.getElementById('admin-error');
+  const dot    = document.getElementById('wallet-dot');
+  const addrEl = document.getElementById('wallet-addr-display');
+  const pwVal  = document.getElementById('admin-password').value;
 
   errEl.style.display = 'none';
+
+  // ── 1. Password check (SHA-256) ──
+  if (!pwVal) { showErr('🔑 Please enter the admin password.'); return; }
+  const pwHash = await sha256(pwVal);
+  if (pwHash !== CONFIG.adminPasswordHash) {
+    showErr('🚫 Incorrect password. Access denied.');
+    document.getElementById('admin-password').value = '';
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = 'CONNECTING…';
 
   if (!window.ethereum) {
     showErr('⚠️ MetaMask not detected. Please install the MetaMask extension.');
-    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
     return;
   }
 
@@ -235,7 +302,6 @@ async function adminLogin() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     const wallet   = accounts[0];
 
-    // Update wallet display
     dot.classList.add('connected');
     addrEl.textContent = `${wallet.slice(0,6)}…${wallet.slice(-4)}`;
     addrEl.style.color = '#06d6a0';
@@ -248,11 +314,10 @@ async function adminLogin() {
       dot.style.background = '#ef233c';
       addrEl.style.color = '#ef233c';
       showErr('🚫 Access denied. This wallet does not have administrator privileges.');
-      btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+      btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
       return;
     }
 
-    // Store admin session
     sessionStorage.setItem('adminWallet', wallet.toLowerCase());
     btn.textContent = '✅ ACCESS GRANTED — REDIRECTING…';
     btn.style.background = 'linear-gradient(135deg, #06d6a0, #00b4d8)';
@@ -260,8 +325,19 @@ async function adminLogin() {
 
   } catch (e) {
     showErr('🚫 MetaMask connection cancelled.');
-    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
+    btn.disabled = false; btn.textContent = '🦊  CONNECT AS ADMIN';
   }
+}
+
+async function sha256(message) {
+  const buf  = new TextEncoder().encode(message);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function togglePwVisibility() {
+  const inp = document.getElementById('admin-password');
+  inp.type  = inp.type === 'password' ? 'text' : 'password';
 }
 
 function showErr(msg) {

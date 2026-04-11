@@ -75,10 +75,19 @@
 
           <div class="wallet-block">
             <div class="wallet-icon">💳</div>
-            <div>
+            <div style="flex:1;min-width:0">
               <div class="wallet-label">VOTING WALLET</div>
               <div class="wallet-address" id="wallet-address-display">——</div>
             </div>
+            <a href="change-wallet.html" title="Change linked wallet address"
+               style="flex-shrink:0;padding:5px 10px;border:1px solid rgba(0,180,216,0.3);border-radius:7px;
+                      background:rgba(0,180,216,0.07);color:var(--primary);font-size:0.68rem;font-weight:700;
+                      font-family:'Rajdhani',sans-serif;letter-spacing:0.8px;text-decoration:none;
+                      transition:background 0.2s;white-space:nowrap"
+               onmouseover="this.style.background='rgba(0,180,216,0.15)'"
+               onmouseout="this.style.background='rgba(0,180,216,0.07)'">
+              🔗 CHANGE
+            </a>
           </div>
 
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">

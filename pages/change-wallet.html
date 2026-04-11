@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D-VOTE – Change Wallet Address</title>
+  <meta name="description" content="Update your linked MetaMask wallet address with Aadhaar and biometric verification." />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="../js/theme.js"></script>
+  <link rel="stylesheet" href="../css/styles.css" />
+  <style>
+    .cw-card {
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.14);
+      width: 500px;
+      max-width: 95vw;
+      position: relative;
+      overflow: hidden;
+    }
+    .cw-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    .cw-body { padding: 32px 36px 36px; }
+    .cw-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text1);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .cw-sub { font-size: 0.78rem; color: var(--text3); text-align: center; margin-bottom: 28px; line-height: 1.5; }
+
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700;
+      color: var(--text3);
+      transition: all 0.3s;
+    }
+    .step-dot.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .step-dot.done   { background: var(--accent);  border-color: var(--accent);  color: #fff; }
+    .step-line { width: 40px; height: 2px; background: var(--border); border-radius: 1px; transition: background 0.3s; }
+    .step-line.done { background: var(--accent); }
+
+    /* ── fingerprint section ── */
+    .fp-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 24px 0 16px;
+    }
+    .fp-ring {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      border: 3px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .fp-ring::before {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--primary);
+      border-right-color: var(--primary);
+      animation: spin 1.5s linear infinite;
+      display: none;
+    }
+    .fp-ring.scanning::before { display: block; }
+    .fp-ring.success { border-color: var(--accent); }
+    .fp-ring.success::before { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .fp-icon { font-size: 2.8rem; }
+    .fp-label { font-size: 0.82rem; color: var(--text3); text-align: center; line-height: 1.5; }
+    .fp-scan-btn {
+      margin-top: 12px;
+      padding: 10px 28px;
+      background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+      color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem; font-weight: 700; letter-spacing: 1.5px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .fp-scan-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .fp-scan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .cw-msg {
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    #cw-error   { background: rgba(239,35,60,0.07);  border: 1px solid rgba(239,35,60,0.25);  color: var(--danger); }
+    #cw-success { background: rgba(6,214,160,0.08);  border: 1px solid rgba(6,214,160,0.3);   color: #0d9c73; }
+
+    .cw-btn {
+      width: 100%; padding: 14px;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+      color: #fff;
+    }
+    .cw-btn:hover    { opacity: 0.92; transform: translateY(-1px); }
+    .cw-btn:disabled { opacity: 0.5;  cursor: not-allowed; transform: none; }
+
+    .wallet-row { display: flex; gap: 10px; align-items: flex-end; }
+    .wallet-row .input-group { flex:1; margin-bottom:0; }
+    .mm-btn {
+      flex-shrink: 0; height: 44px; padding: 0 14px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      background: rgba(0,180,216,0.06); color: var(--primary);
+      font-family: 'Rajdhani', sans-serif; font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.5px; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .mm-btn:hover { background: var(--primary-glow); border-color: var(--primary); }
+
+    /* steps container */
+    .cw-step { display: none; }
+    .cw-step.active { display: block; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-brand">D-<span>VOTE</span></a>
+  <div class="nav-links"><!-- syncNav --></div>
+  <div class="nav-user"><!-- syncNav --></div>
+</nav>
+
+<div style="flex:1;background:var(--reg-page-bg);display:flex;align-items:center;justify-content:center;padding:40px 20px;">
+  <div class="cw-card">
+    <div class="cw-body">
+
+      <!-- Messages -->
+      <div class="cw-msg" id="cw-error"></div>
+      <div class="cw-msg" id="cw-success"></div>
+
+      <!-- Title -->
+      <div class="cw-title">CHANGE WALLET ADDRESS</div>
+      <div class="cw-sub">Verify your identity with Aadhaar and biometric scan to link a new wallet.</div>
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="s-dot-1">1</div>
+        <div class="step-line" id="s-line-1"></div>
+        <div class="step-dot" id="s-dot-2">2</div>
+        <div class="step-line" id="s-line-2"></div>
+        <div class="step-dot" id="s-dot-3">3</div>
+      </div>
+
+      <!-- ── STEP 1: Aadhaar Verification ── -->
+      <div class="cw-step active" id="step-1">
+        <div class="input-group">
+          <label class="input-label" for="cw-aadhaar">12-Digit Aadhaar Number</label>
+          <input type="text" id="cw-aadhaar" class="input-field"
+                 placeholder="XXXX-XXXX-XXXX" maxlength="14"
+                 oninput="formatAadhaar(this)"
+                 onkeydown="if(event.key==='Enter') verifyAadhaar()" />
+        </div>
+        <button class="cw-btn" id="cw-step1-btn" onclick="verifyAadhaar()">
+          VERIFY AADHAAR →
+        </button>
+      </div>
+
+      <!-- ── STEP 2: Biometric (Fingerprint) ── -->
+      <div class="cw-step" id="step-2">
+        <div class="fp-wrap">
+          <div class="fp-ring" id="fp-ring">
+            <div class="fp-icon" id="fp-icon">🖐</div>
+          </div>
+          <div class="fp-label" id="fp-label">
+            Place your finger on the sensor to verify identity<br>
+            <span style="color:var(--primary);font-weight:600">BIOMETRIC AUTHENTICATION</span>
+          </div>
+          <button class="fp-scan-btn" id="fp-scan-btn" onclick="startFingerprintScan()">
+            🖐 SCAN FINGERPRINT
+          </button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: New Wallet ── -->
+      <div class="cw-step" id="step-3">
+        <div style="background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:0.8rem;color:var(--text2)">
+          ✅ Identity verified for <strong id="verified-name" style="color:var(--text1)">—</strong>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">New MetaMask Wallet Address</label>
+          <div class="wallet-row">
+            <div class="input-group">
+              <input type="text" id="cw-wallet" class="input-field"
+                     placeholder="0x… or click Auto-Fill" style="font-size:0.78rem" />
+            </div>
+            <button class="mm-btn" onclick="autoFillWallet()">🦊 Auto-Fill</button>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;margin-bottom:20px">
+          ⚠️ This address will replace your current linked wallet. Make sure it's correct before confirming.
+        </div>
+
+        <button class="cw-btn" id="cw-submit-btn" onclick="submitWalletChange()">
+          🔗 CONFIRM NEW WALLET
+        </button>
+      </div>
+
+      <div style="text-align:center;margin-top:20px;font-size:0.8rem;color:var(--text3)">
+        <a href="auth.html" style="color:var(--primary);font-weight:600;text-decoration:none">← Back to Login</a>
+        &nbsp;·&nbsp;
+        <a href="dashboard.html" style="color:var(--text3);text-decoration:none">Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+<script src="../js/script.js"></script>
+<script>
+const _sbCW = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+let _verifiedVoter = null; // set after aadhaar check
+
+// ── SHA-256 helper ─────────────────────────────────────────────
+async function sha256(msg) {
+  const buf  = new TextEncoder().encode(msg);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Message helpers ─────────────────────────────────────────────
+function showCWError(msg)   { const e = document.getElementById('cw-error');   e.innerHTML = msg; e.style.display='flex'; setTimeout(()=>e.style.display='none',7000); }
+function showCWSuccess(msg) { const e = document.getElementById('cw-success'); e.innerHTML = msg; e.style.display='flex'; }
+function hideMsgs()         { ['cw-error','cw-success'].forEach(id=>document.getElementById(id).style.display='none'); }
+
+// ── Step navigation ─────────────────────────────────────────────
+function goToStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById(`step-${i}`).classList.toggle('active', i===n);
+    const dot = document.getElementById(`s-dot-${i}`);
+    dot.classList.toggle('active', i===n);
+    dot.classList.toggle('done',   i<n);
+    if (i < 3) {
+      document.getElementById(`s-line-${i}`).classList.toggle('done', i<n);
+    }
+  });
+}
+
+// ── STEP 1: Verify Aadhaar ──────────────────────────────────────
+async function verifyAadhaar() {
+  hideMsgs();
+  const raw = document.getElementById('cw-aadhaar').value.replace(/-/g,'');
+  if (raw.length !== 12 || !/^\d{12}$/.test(raw)) {
+    showCWError('⚠️ Enter a valid 12-digit Aadhaar number.');
+    return;
+  }
+
+  const btn = document.getElementById('cw-step1-btn');
+  btn.disabled = true; btn.textContent = 'VERIFYING…';
+
+  const hash = await sha256(raw);
+  const { data: voter, error } = await _sbCW
+    .from('voters')
+    .select('id, name, wallet_address, has_voted')
+    .eq('aadhaar_hash', hash)
+    .maybeSingle();
+
+  if (error || !voter) {
+    showCWError('❌ Aadhaar number not found in the voter database. Please register first.');
+    btn.disabled = false; btn.textContent = 'VERIFY AADHAAR →';
+    return;
+  }
+
+  _verifiedVoter = voter;
+  btn.disabled = false; btn.textContent = 'VERIFY AADHAAR →';
+  goToStep(2);
+}
+
+// ── STEP 2: Fingerprint scan (mock) ────────────────────────────
+function startFingerprintScan() {
+  const ring    = document.getElementById('fp-ring');
+  const icon    = document.getElementById('fp-icon');
+  const label   = document.getElementById('fp-label');
+  const scanBtn = document.getElementById('fp-scan-btn');
+
+  scanBtn.disabled = true;
+  scanBtn.textContent = '⏳ Scanning…';
+  ring.classList.add('scanning');
+  icon.textContent = '🖐';
+  label.innerHTML = 'Reading biometric data…<br><span style="color:var(--primary);font-weight:600">Please hold still</span>';
+
+  // Simulate a 3-second scan
+  let t = 3;
+  const countEl = document.createElement('div');
+  countEl.style.cssText = 'font-size:1.8rem;font-weight:700;font-family:Rajdhani,sans-serif;color:var(--primary);margin-top:6px';
+  countEl.textContent = t;
+  label.after(countEl);
+
+  const tick = setInterval(() => {
+    t--;
+    countEl.textContent = t || '';
+    if (t <= 0) {
+      clearInterval(tick);
+      countEl.remove();
+      scanSuccess(ring, icon, label, scanBtn);
+    }
+  }, 1000);
+}
+
+function scanSuccess(ring, icon, label, btn) {
+  ring.classList.remove('scanning');
+  ring.classList.add('success');
+  icon.textContent = '✅';
+  label.innerHTML = `<strong style="color:var(--accent)">Biometric Verified!</strong><br>Identity confirmed for <strong>${_verifiedVoter.name}</strong>`;
+  btn.textContent = '✓ VERIFIED — CONTINUE';
+  btn.disabled = false;
+  btn.style.background = 'linear-gradient(90deg, #019a72, #06d6a0)';
+  btn.onclick = () => {
+    document.getElementById('verified-name').textContent = _verifiedVoter.name;
+    goToStep(3);
+  };
+}
+
+// ── STEP 3: Auto-fill wallet & submit ──────────────────────────
+async function autoFillWallet() {
+  if (!window.ethereum) { showCWError('⚠️ MetaMask not detected.'); return; }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    document.getElementById('cw-wallet').value = accounts[0];
+  } catch(e) { showCWError('🚫 MetaMask connection cancelled.'); }
+}
+
+async function submitWalletChange() {
+  hideMsgs();
+  const newWallet = document.getElementById('cw-wallet').value.trim();
+
+  if (!newWallet || !/^0x[0-9a-fA-F]{40}$/.test(newWallet)) {
+    showCWError('⚠️ Please enter a valid Ethereum wallet address (0x…).');
+    return;
+  }
+
+  if (!_verifiedVoter) { showCWError('❌ Session lost — please start over.'); goToStep(1); return; }
+
+  if (_verifiedVoter.wallet_address &&
+      _verifiedVoter.wallet_address.toLowerCase() === newWallet.toLowerCase()) {
+    showCWError('ℹ️ This is already your linked wallet address. No changes needed.');
+    return;
+  }
+
+  const btn = document.getElementById('cw-submit-btn');
+  btn.disabled = true; btn.textContent = 'UPDATING…';
+
+  // Check uniqueness — another voter can't use this wallet
+  const { data: clash } = await _sbCW
+    .from('voters')
+    .select('id')
+    .eq('wallet_address', newWallet.toLowerCase())
+    .neq('id', _verifiedVoter.id)
+    .maybeSingle();
+
+  if (clash) {
+    showCWError('❌ This wallet address is already linked to another voter account.');
+    btn.disabled = false; btn.textContent = '🔗 CONFIRM NEW WALLET';
+    return;
+  }
+
+  const { error } = await _sbCW
+    .from('voters')
+    .update({ wallet_address: newWallet.toLowerCase() })
+    .eq('id', _verifiedVoter.id);
+
+  if (error) {
+    showCWError('❌ Update failed: ' + (error.message || 'Unknown error'));
+    btn.disabled = false; btn.textContent = '🔗 CONFIRM NEW WALLET';
+    return;
+  }
+
+  // Update session if the voter is currently logged in
+  const session = JSON.parse(sessionStorage.getItem('voter') || 'null');
+  if (session && session.id === _verifiedVoter.id) {
+    session.wallet_address = newWallet.toLowerCase();
+    sessionStorage.setItem('voter', JSON.stringify(session));
+  }
+
+  btn.textContent = '✅ WALLET UPDATED';
+  btn.style.background = 'linear-gradient(90deg, #019a72, #06d6a0)';
+  showCWSuccess(
+    `✅ <strong>Wallet address updated successfully!</strong><br>
+     <span style="font-size:0.8rem;opacity:0.85">
+       New wallet: <code style="font-family:'JetBrains Mono',monospace">${newWallet.slice(0,10)}…${newWallet.slice(-6)}</code><br>
+       Redirecting to login in 3 seconds…
+     </span>`
+  );
+  setTimeout(() => window.location.href = 'auth.html', 3000);
+}
+
+// ── init nav ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
+  syncNav(voter);
+});
+</script>
+</body>
+</html>
