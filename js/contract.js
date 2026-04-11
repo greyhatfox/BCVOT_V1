@@ -373,11 +373,11 @@ async function loadCandidateElections() {
   const db = getSupabase();
   const { data: elections, error } = await db.from('elections').select('id, title').eq('status','active').order('id', { ascending: true });
   if (error || !elections || elections.length === 0) {
-    sel.innerHTML = '<option value="">No active elections available</option>';
+    sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">No active elections available</option>';
     return;
   }
-  sel.innerHTML = '<option value="">Select active election…</option>' + 
-    elections.map(e => `<option value="${e.id}">${e.title.split('·')[0].trim()}</option>`).join('');
+  sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">Select active election…</option>' + 
+    elections.map(e => `<option value="${e.id}" style="background:#0a0e1a;color:#fff;">${e.title.split('·')[0].trim()}</option>`).join('');
 }
 
 async function applyForCandidacy() {

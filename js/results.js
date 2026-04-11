@@ -219,8 +219,10 @@ async function fetchAndRenderResults() {
 // ── Recent transactions ───────────────────────────────────────
 async function fetchRecentTx() {
   try {
+    const eid = getCurrentElectionId();
     const { data: txs, error } = await _sbResults
       .from('transactions').select('*')
+      .eq('election_id', eid)
       .order('timestamp', { ascending: false }).limit(10);
     if (error || !txs) return;
 
@@ -248,7 +250,7 @@ async function fetchRecentTx() {
       tbody.appendChild(row);
     });
 
-    const { count } = await _sbResults.from('transactions').select('*',{count:'exact',head:true});
+    const { count } = await _sbResults.from('transactions').select('*',{count:'exact',head:true}).eq('election_id', eid);
     const el = document.getElementById('tx-count-stat');
     if (el && count != null) el.textContent = count.toLocaleString();
   } catch (err) {

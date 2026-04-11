@@ -192,14 +192,14 @@ async function loadElectionsForDropdown() {
   const sel = document.getElementById('cand-election');
   if (!sel) return;
   if (error || !elections || elections.length === 0) {
-    sel.innerHTML = '<option value="">No elections available</option>';
+    sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">No elections available</option>';
     return;
   }
-  sel.innerHTML = `<option value="">Select election to contest…</option>` +
+  sel.innerHTML = `<option value="" style="background:#0a0e1a;color:#fff;">Select election to contest…</option>` +
     elections.map(e => {
       const label  = e.title.split('·')[0].trim();
       const closed = e.status === 'closed';
-      return `<option value="${e.id}" ${closed ? 'disabled' : ''}>${label}${closed ? ' (CLOSED)' : ''}</option>`;
+      return `<option value="${e.id}" ${closed ? 'disabled' : ''} style="background:#0a0e1a;color:#fff;">${label}${closed ? ' (CLOSED)' : ''}</option>`;
     }).join('');
 }
 

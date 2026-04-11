@@ -64,6 +64,7 @@
           <thead>
             <tr style="background:var(--surface2)">
               <th style="padding:12px 20px">Tx Hash</th>
+              <th>Election</th>
               <th>Block</th>
               <th>Timestamp</th>
               <th>From</th>
@@ -72,7 +73,7 @@
           </thead>
           <tbody id="history-tx-body">
             <tr>
-              <td colspan="5" style="text-align:center;padding:24px;color:var(--text3);font-size:0.82rem">
+              <td colspan="6" style="text-align:center;padding:24px;color:var(--text3);font-size:0.82rem">
                 ⏳ Loading your transaction history…
               </td>
             </tr>
@@ -93,6 +94,14 @@
   const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
 
   const db = supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  
+  // Fetch elections to map IDs to Titles
+  const { data: electionsData } = await db.from('elections').select('id, title');
+  const elecMap = {};
+  if (electionsData) {
+    electionsData.forEach(e => elecMap[e.id] = e.title.split('·')[0].trim());
+  }
+
   const { data: txs, error } = await db
     .from('transactions')
     .select('*')
@@ -124,6 +133,7 @@
     // Highlight the logged-in voter's own transactions
     const isOwn = voter?.wallet_address && tx.from_address === voter.wallet_address.toLowerCase();
     row.style.background = isOwn ? 'rgba(6,214,160,0.04)' : '';
+    
     row.innerHTML = `
       <td style="padding:12px 20px">
         <div style="display:flex;align-items:center;gap:8px">
@@ -135,6 +145,7 @@
           ${isOwn ? '<span style="font-size:0.65rem;background:rgba(6,214,160,0.15);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:700">YOU</span>' : ''}
         </div>
       </td>
+      <td class="tx-time" style="font-weight:500;color:var(--text2)">${elecMap[tx.election_id] || 'Unknown'}</td>
       <td class="tx-time">${tx.block_number ? '#' + tx.block_number : '—'}</td>
       <td class="tx-time">${fmtTs(tx.timestamp)}</td>
       <td class="tx-hash">${shortFrom}</td>
