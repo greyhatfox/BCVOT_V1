@@ -235,8 +235,10 @@
           <input type="text" id="new-election-title" placeholder="e.g. Municipal Election 2026" style="display:block;width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
         </div>
         <div style="flex:1;">
-          <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Constituency ID</label>
-          <input type="number" id="new-election-constituency" placeholder="e.g. 42" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="display:block;width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
+          <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Constituency</label>
+          <select id="new-election-constituency" style="display:block;width:100%;padding:10px 14px;background:#0e1421;border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;cursor:pointer;appearance:auto;">
+            <option value="0" style="background:#0e1421;color:#fff;">&lt;ALL&gt; — Open to Everyone</option>
+          </select>
         </div>
         <div style="flex:1;">
           <label style="display:block;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-bottom:6px;">Duration (Days)</label>
@@ -404,7 +406,7 @@ async function loadElections() {
     row.innerHTML = `
       <td style="color:#fff;font-weight:600">#${e.id}</td>
       <td style="color:#fff;font-weight:600">${e.title}</td>
-      <td>C-${e.constituency}</td>
+      <td>${e.constituency === 0 ? '<span class="badge badge-blue">&lt;ALL&gt;</span>' : `C-${e.constituency}`}</td>
       <td style="color:rgba(255,255,255,0.4);font-size:0.78rem">${fmtTs(e.end_date)}</td>
       <td>
         ${e.status === 'active'
@@ -415,17 +417,30 @@ async function loadElections() {
   }
 }
 
+// ── Populate constituency select (1-543 + ALL) ──────────────
+(function populateConstituencySelect() {
+  const sel = document.getElementById('new-election-constituency');
+  for (let i = 1; i <= 543; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Constituency ${i}`;
+    opt.style.background = '#0e1421';
+    opt.style.color = '#fff';
+    sel.appendChild(opt);
+  }
+})();
+
 async function createNewElection(btn) {
   const titleInput = document.getElementById('new-election-title');
-  const constInput = document.getElementById('new-election-constituency');
-  const durInput = document.getElementById('new-election-duration');
+  const constSel   = document.getElementById('new-election-constituency');
+  const durInput   = document.getElementById('new-election-duration');
   
-  const title = titleInput.value.trim();
-  const constituency = parseInt(constInput.value);
+  const title        = titleInput.value.trim();
+  const constituency = parseInt(constSel.value); // 0 = ALL, 1-543 = specific
   const durationDays = parseInt(durInput.value);
 
   if (!title) { adminToast('❌ Please enter an election title.'); return; }
-  if (!constituency || isNaN(constituency)) { adminToast('❌ Please enter a valid constituency ID.'); return; }
+  if (isNaN(constituency) || constituency < 0) { adminToast('❌ Please select a valid constituency.'); return; }
   if (!durationDays || isNaN(durationDays) || durationDays <= 0) { adminToast('❌ Please enter a valid duration.'); return; }
 
   const durationSec = durationDays * 24 * 60 * 60;
@@ -491,8 +506,8 @@ async function createNewElection(btn) {
   
   // Reset inputs
   titleInput.value = '';
-  constInput.value = '';
-  durInput.value = '30';
+  constSel.value   = '0'; // back to <ALL>
+  durInput.value   = '30';
   
   // Reset button & reload table
   btn.disabled = false;

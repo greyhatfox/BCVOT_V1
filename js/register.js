@@ -73,7 +73,10 @@ async function registerVoter() {
   if (!name)                          { showRegError('⚠️ Please enter your full name.'); return; }
   if (aadhaarRaw.length !== 12)       { showRegError('⚠️ Enter a valid 12-digit Aadhaar number.'); return; }
   if (!/^\d{12}$/.test(aadhaarRaw))   { showRegError('⚠️ Aadhaar must contain exactly 12 digits.'); return; }
-  if (!constituency || isNaN(constituency) || constituency < 1) { showRegError('⚠️ Enter a valid constituency number.'); return; }
+  if (!constituency || isNaN(constituency) || constituency < 1 || constituency > 543) {
+    showRegError('⚠️ Enter a valid constituency number (1 – 543).');
+    return;
+  }
   if (applyAsCandidate && !party)     { showRegError('⚠️ Please enter a party name to apply as a candidate.'); return; }
   if (applyAsCandidate && !elecId)    { showRegError('⚠️ Please select an election to contest.'); return; }
 
@@ -136,6 +139,23 @@ async function registerVoter() {
     // ── Submit candidate application (if toggled) ──
     if (applyAsCandidate) {
       btn.textContent = 'SUBMITTING CANDIDATE APPLICATION…';
+
+      // Eligibility check: fetch the chosen election's constituency
+      const { data: elecData } = await _sbReg
+        .from('elections')
+        .select('constituency')
+        .eq('id', elecId)
+        .single();
+
+      if (elecData && elecData.constituency !== 0 && elecData.constituency !== constituency) {
+        showRegError(
+          `❌ You are not eligible to contest Election #${elecId}. ` +
+          `It is restricted to Constituency ${elecData.constituency}, but you are in Constituency ${constituency}.`
+        );
+        btn.disabled = false; btn.textContent = 'REGISTER AS VOTER';
+        return;
+      }
+
       const candPayload = {
         name,                       // same name as voter
         party,
@@ -182,24 +202,47 @@ async function registerVoter() {
   }
 }
 
-// ── Load elections into candidate dropdown ─────────────────────
+// ── Load elections into candidate dropdown (filtered by constituency) ──
 async function loadElectionsForDropdown() {
-  const { data: elections, error } = await _sbReg
-    .from('elections')
-    .select('id, title, status')
-    .order('id', { ascending: true });
+  // Read the voter's constituency from the form
+  const voterConst = parseInt(document.getElementById('voter-constituency').value);
 
   const sel = document.getElementById('cand-election');
   if (!sel) return;
+
+  // Show loading state
+  sel.innerHTML = '<option value="" style="background:var(--surface2);color:var(--text);">Loading eligible elections…</option>';
+
+  const { data: elections, error } = await _sbReg
+    .from('elections')
+    .select('id, title, status, constituency')
+    .order('id', { ascending: true });
+
   if (error || !elections || elections.length === 0) {
-    sel.innerHTML = '<option value="" style="background:#0a0e1a;color:#fff;">No elections available</option>';
+    sel.innerHTML = '<option value="" style="background:var(--surface2);color:var(--text);">No elections available</option>';
     return;
   }
-  sel.innerHTML = `<option value="" style="background:#0a0e1a;color:#fff;">Select election to contest…</option>` +
-    elections.map(e => {
+
+  // Filter: only show ALL elections (constituency=0) or elections matching the voter's constituency
+  const eligible = elections.filter(e =>
+    e.constituency === 0 || (isFinite(voterConst) && e.constituency === voterConst)
+  );
+
+  if (eligible.length === 0) {
+    sel.innerHTML =
+      `<option value="" style="background:var(--surface2);color:var(--text);">
+        No elections for Constituency ${isFinite(voterConst) ? voterConst : '?'}
+      </option>`;
+    return;
+  }
+
+  sel.innerHTML =
+    `<option value="" style="background:var(--surface2);color:var(--text);">Select election to contest…</option>` +
+    eligible.map(e => {
       const label  = e.title.split('·')[0].trim();
       const closed = e.status === 'closed';
-      return `<option value="${e.id}" ${closed ? 'disabled' : ''} style="background:#0a0e1a;color:#fff;">${label}${closed ? ' (CLOSED)' : ''}</option>`;
+      const tag    = e.constituency === 0 ? ' — 〈ALL〉' : ` — C-${e.constituency}`;
+      return `<option value="${e.id}" ${closed ? 'disabled' : ''} style="background:var(--surface2);color:var(--text);">${label}${tag}${closed ? ' (CLOSED)' : ''}</option>`;
     }).join('');
 }
 

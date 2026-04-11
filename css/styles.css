@@ -1,4 +1,3 @@
-/* ──────────── DARK MODE (DEFAULT) ──────────── */
   :root,
   [data-theme="dark"] {
     --bg: #0e1421;
@@ -24,33 +23,39 @@
     --radius-sm: 8px;
     --auth-page-bg: linear-gradient(135deg, #0a1628 0%, #0d1f38 50%, #0a1628 100%);
     --reg-page-bg: linear-gradient(135deg, #0a1628, #0d1f38, #0a1628);
+    --select-bg: #131c2e;
+    --select-text: #e8f1fb;
+    color-scheme: dark;
   }
 
   /* ──────────── LIGHT MODE ──────────── */
   [data-theme="light"] {
-    --bg: #f0f4f8;
+    --bg: #eef3f8;
     --surface: #ffffff;
-    --surface2: #f7fafc;
-    --border: #e2e8f0;
-    --primary: #00b4d8;
-    --primary-dark: #0077b6;
-    --primary-glow: rgba(0,180,216,0.18);
-    --accent: #06d6a0;
-    --accent2: #118ab2;
-    --danger: #ef233c;
+    --surface2: #f0f5fa;
+    --border: #d4dde8;
+    --primary: #0077b6;
+    --primary-dark: #005f8a;
+    --primary-glow: rgba(0,119,182,0.14);
+    --accent: #05a87d;
+    --accent2: #0e6d90;
+    --danger: #d62839;
     --text: #0d1b2a;
     --text1: #0d1b2a;
-    --text2: #4a5568;
-    --text3: #718096;
-    --confirmed: #06d6a0;
-    --eligible: #06d6a0;
+    --text2: #3a4f63;
+    --text3: #6b839a;
+    --confirmed: #05a87d;
+    --eligible: #05a87d;
     --nav-bg: #0a1628;
     --nav-text: #e2e8f0;
-    --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    --card-shadow: 0 4px 20px rgba(0,0,0,0.09);
     --radius: 14px;
     --radius-sm: 8px;
-    --auth-page-bg: linear-gradient(135deg, #e8f4f8 0%, #f0f8fc 50%, #e8f0f8 100%);
-    --reg-page-bg: linear-gradient(135deg, #e8f4f8, #f0f8fc, #e8f0f8);
+    --auth-page-bg: linear-gradient(135deg, #daeaf5 0%, #edf4fb 50%, #dde8f5 100%);
+    --reg-page-bg: linear-gradient(135deg, #daeaf5, #edf4fb, #dde8f5);
+    --select-bg: #ffffff;
+    --select-text: #0d1b2a;
+    color-scheme: light;
   }
 
   /* Smooth theme transitions */
@@ -347,7 +352,7 @@
   .info-value { font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
 
   .wallet-block {
-    background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+    background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 14px 16px;
@@ -552,6 +557,30 @@
   }
   .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
   .input-field::placeholder { letter-spacing: 1px; color: var(--text3); }
+
+  /* ── Select / dropdown fix (both themes) ── */
+  select.input-field,
+  select {
+    background-color: var(--surface2);
+    color: var(--text);
+  }
+  select.input-field option,
+  select option {
+    background-color: var(--surface2);
+    color: var(--text);
+  }
+  /* Light mode: force white background on native option menu */
+  [data-theme="light"] select.input-field,
+  [data-theme="light"] select {
+    background-color: #ffffff;
+    color: #0d1b2a;
+    border-color: #c8d8e8;
+  }
+  [data-theme="light"] select.input-field option,
+  [data-theme="light"] select option {
+    background-color: #ffffff;
+    color: #0d1b2a;
+  }
 
   .fingerprint-section {
     display: flex;
