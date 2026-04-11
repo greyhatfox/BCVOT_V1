@@ -46,7 +46,7 @@ async function loadDashboard() {
     await injectElectionDropdown();
   }
 
-  // ── Update Ballot Title Dynamically ──
+  // ── Update Ballot Title + Constituency Eligibility Check ──
   if (window._currentElectionData) {
     const eData = window._currentElectionData;
     const titleEl = document.getElementById('ballot-title');
@@ -58,8 +58,49 @@ async function loadDashboard() {
         <span style="display:inline-block;margin-left:8px;padding:2px 9px;border-radius:12px;font-size:0.65rem;font-weight:700;letter-spacing:1px;
                background:rgba(0,180,216,0.12);color:var(--primary);border:1px solid rgba(0,180,216,0.25);vertical-align:middle">${constLabel}</span>`;
     }
-    
-    // Disable cast vote if closed
+
+    // ── Constituency Eligibility ──
+    // constituency === 0 means open to ALL; otherwise must match voter's
+    const voterConst   = parseInt(voter.constituency);
+    const electConst   = eData.constituency;
+    const isEligible   = (electConst === 0) || (electConst === voterConst);
+    window._isEligibleToVote = isEligible;
+
+    if (!isEligible) {
+      // Show a visible VIEW-ONLY banner inside the ballot card
+      const container = document.getElementById('candidates-container');
+      if (container) {
+        const banner = document.createElement('div');
+        banner.id = 'view-only-banner';
+        banner.style.cssText = `
+          background: rgba(255,190,11,0.08);
+          border: 1px solid rgba(255,190,11,0.35);
+          border-radius: 10px;
+          padding: 12px 16px;
+          margin-bottom: 14px;
+          font-size: 0.8rem;
+          color: #b7860a;
+          line-height: 1.5;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+        `;
+        banner.innerHTML = `
+          <span style="font-size:1.2rem;flex-shrink:0">⚠️</span>
+          <div>
+            <strong>View-Only Mode</strong><br>
+            This election is for <strong>Constituency ${electConst}</strong>.
+            You are registered in <strong>Constituency ${voterConst}</strong>.
+            You can view candidates and results but <strong>cannot vote here</strong>.
+          </div>
+        `;
+        container.insertAdjacentElement('beforebegin', banner);
+      }
+      // Lock the cast vote button with a clear label
+      lockViewOnly();
+    }
+
+    // Disable cast vote if election is closed (regardless of eligibility)
     if (eData.status !== 'active') {
       const btn = document.querySelector('.cast-vote-btn');
       if (btn) {
@@ -182,6 +223,25 @@ async function checkOnChainVotedState(voter) {
   } catch (_) { /* MetaMask not connected — silently ignore */ }
 }
 
+// ── Lock ballot as VIEW-ONLY (wrong constituency) ─────────────
+function lockViewOnly() {
+  const btn = document.querySelector('.cast-vote-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '🚧 NOT YOUR CONSTITUENCY';
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'not-allowed';
+    btn.style.background = 'rgba(255,190,11,0.12)';
+    btn.style.color = '#b7860a';
+    btn.style.border = '1px solid rgba(255,190,11,0.35)';
+  }
+  // Make cards non-clickable but still visible (view-only)
+  document.querySelectorAll('.candidate-card').forEach(c => {
+    c.style.pointerEvents = 'none';
+    c.style.cursor = 'default';
+  });
+}
+
 // ── Lock ballot UI after voting ───────────────────────────────
 function lockBallot() {
   const btn = document.querySelector('.cast-vote-btn');
@@ -244,6 +304,18 @@ async function castVote() {
 
   let voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
   if (!voter) { alert('Session expired. Please log in again.'); window.location.href = 'auth.html'; return; }
+
+  // ── HARD constituency guard ──
+  if (window._isEligibleToVote === false) {
+    const eData = window._currentElectionData;
+    alert(
+      `❌ You cannot vote in this election.\n\n` +
+      `This election is for Constituency ${eData ? eData.constituency : '?'}.\n` +
+      `You are registered in Constituency ${voter.constituency}.\n\n` +
+      `You may view the candidates and results, but voting is restricted to eligible constituencies.`
+    );
+    return;
+  }
 
   if (window._hasVotedCurrent) {
     alert('You have already cast your vote in this election.');
