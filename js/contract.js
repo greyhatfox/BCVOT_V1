@@ -93,6 +93,9 @@ async function loadDashboard() {
   // ── Load recent transactions ──
   await loadVoterTransactions(voter.wallet_address, 7);
 
+  // ── Load available active elections for candidacy forms ──
+  await loadCandidateElections();
+
   // ── Check on-chain voted state (async, non-blocking) ──
   checkOnChainVotedState(voter).catch(console.warn);
 }
@@ -356,6 +359,82 @@ function updateVotedState(voter) {
   lockBallot();
   const badgeEl = document.getElementById('status-badge');
   if (badgeEl) { badgeEl.textContent = 'STATUS: VOTED'; badgeEl.className = 'status-badge'; badgeEl.style.cssText = 'background:rgba(160,174,192,0.12);color:var(--text3);border:1px solid var(--border)'; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  CANDIDATE APPLICATION FROM DASHBOARD
+// ══════════════════════════════════════════════════════════════════
+async function loadCandidateElections() {
+  const sel = document.getElementById('cand-election');
+  if (!sel) return;
+  const db = getSupabase();
+  const { data: elections, error } = await db.from('elections').select('id, title').eq('status','active').order('id', { ascending: true });
+  if (error || !elections || elections.length === 0) {
+    sel.innerHTML = '<option value="">No active elections available</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Select active election…</option>' + 
+    elections.map(e => `<option value="${e.id}">${e.title.split('·')[0].trim()}</option>`).join('');
+}
+
+async function applyForCandidacy() {
+  const voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
+  if (!voter) return;
+
+  const elecId = document.getElementById('cand-election').value;
+  const party = document.getElementById('cand-party').value.trim();
+  const symbol = document.getElementById('cand-symbol').value.trim();
+  const msgEl = document.getElementById('cand-apply-msg');
+  const btn = document.getElementById('apply-cand-btn');
+
+  function showMsg(msg, isError=true) {
+    msgEl.style.display = 'block';
+    msgEl.style.background = isError ? 'rgba(239,35,60,0.1)' : 'rgba(6,214,160,0.1)';
+    msgEl.style.color = isError ? '#ef233c' : '#06d6a0';
+    msgEl.innerHTML = msg;
+  }
+
+  if (!elecId) { showMsg('⚠️ Please select an election.'); return; }
+  if (!party) { showMsg('⚠️ Please provide a political party.'); return; }
+
+  const db = getSupabase();
+  btn.disabled = true;
+  btn.textContent = 'SUBMITTING…';
+  
+  try {
+    // Check if already applied via wallet
+    const { data: existing } = await db.from('candidates')
+      .select('id, approved')
+      .eq('name', voter.name)
+      .eq('election_id', parseInt(elecId));
+
+    if (existing && existing.length > 0) {
+      showMsg(existing[0].approved ? '⚠️ You are already an approved candidate for this election.' : '⏳ Your application is already pending admin review.');
+      return;
+    }
+
+    const payload = {
+      name: voter.name,
+      party: party,
+      symbol: symbol || '🏛️',
+      election_id: parseInt(elecId),
+      approved: false
+    };
+    if (voter.wallet_address) { payload.wallet_address = voter.wallet_address.toLowerCase(); }
+
+    const { error } = await db.from('candidates').insert(payload);
+    if (error) throw error;
+
+    showMsg('✅ Application submitted successfully. Pending admin approval.', false);
+    document.getElementById('cand-party').value = '';
+    document.getElementById('cand-symbol').value = '';
+
+  } catch (err) {
+    showMsg('❌ Error submitting application: ' + (err.message || 'Unknown error'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'SUBMIT APPLICATION';
+  }
 }
 
 // ── Auto-init on DOMContentLoaded ────────────────────────────

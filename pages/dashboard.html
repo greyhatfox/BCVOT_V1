@@ -141,6 +141,39 @@
         </div>
       </div>
 
+      <!-- ── BECOME A CANDIDATE CARD ── -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Candidate Application</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="card-body">
+          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:14px">Apply to run in an active election. Your application requires admin approval.</div>
+          
+          <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:0.75rem;color:var(--text2);margin-bottom:6px;">Select Election</label>
+            <select id="cand-election" style="width:100%;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;">
+              <option value="">Loading elections…</option>
+            </select>
+          </div>
+          
+          <div style="display:flex;gap:12px;margin-bottom:16px;">
+            <div style="flex:2;">
+              <label style="display:block;font-size:0.75rem;color:var(--text2);margin-bottom:6px;">Political Party</label>
+              <input type="text" id="cand-party" placeholder="e.g. Independent" style="width:100%;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.85rem;" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:0.75rem;color:var(--text2);margin-bottom:6px;">Symbol</label>
+              <input type="text" id="cand-symbol" placeholder="e.g. ⭐️" style="width:100%;padding:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;" />
+            </div>
+          </div>
+          
+          <div id="cand-apply-msg" style="font-size:0.8rem;margin-bottom:10px;display:none;padding:8px;border-radius:6px;"></div>
+
+          <button class="cast-vote-btn" style="background:rgba(0,180,216,0.15);color:#00b4d8;border-color:rgba(0,180,216,0.3)" id="apply-cand-btn" onclick="applyForCandidacy()">SUBMIT APPLICATION</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
