@@ -9,7 +9,7 @@ const CONFIG = {
   // SHA-256 of the admin password "Admin@DVote2026"
   // To change: run  crypto.subtle.digest('SHA-256', new TextEncoder().encode('YourNewPassword'))
   //            then convert the ArrayBuffer to hex and paste it here.
-  adminPasswordHash: "a07e9f0cc956ef75f0d9e45c5da90dcbfedad3ce5b3ecaea4ab6d0b43ebfec2a",
+  adminPasswordHash: "10f2ebc2b6b72217d54f0e5f342c146737d6053d70ae0f0e3d34645dc1b765cf",
   electionId:      1,
   // strictWalletCheck: false → warns on wallet mismatch but doesn't block the vote.
   // Set to true once you've updated the wallet_address in Supabase to match your MetaMask.
