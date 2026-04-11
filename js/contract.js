@@ -79,12 +79,23 @@ async function loadDashboard() {
     ? `${voter.wallet_address.slice(0,6)}...${voter.wallet_address.slice(-4)}`
     : '0x——';
   if (walletEl) walletEl.textContent = shortWallet;
-  if (tokenEl)  tokenEl.textContent  = voter.voting_token ?? 1;
-
-  // ── Status / voted state ──
-  if (voter.has_voted) {
-    if (badgeEl) { badgeEl.textContent = 'STATUS: VOTED'; badgeEl.className = 'status-badge'; badgeEl.style.cssText = 'background:rgba(160,174,192,0.12);color:var(--text3);border:1px solid var(--border)'; }
-    lockBallot();
+  // ── Status / voted state (Per-Election) ──
+  const db = getSupabase();
+  const eid = getCurrentElectionId();
+  if (voter.wallet_address) {
+    const { data: tx } = await db.from('transactions').select('id').eq('from_address', voter.wallet_address.toLowerCase()).eq('election_id', eid);
+    if (tx && tx.length > 0) {
+      if (tokenEl) tokenEl.textContent = '0';
+      if (badgeEl) { badgeEl.textContent = 'STATUS: VOTED'; badgeEl.className = 'status-badge'; badgeEl.style.cssText = 'background:rgba(160,174,192,0.12);color:var(--text3);border:1px solid var(--border)'; }
+      window._hasVotedCurrent = true;
+      lockBallot();
+    } else {
+      if (tokenEl) tokenEl.textContent = '1';
+      window._hasVotedCurrent = false;
+    }
+  } else {
+    if (tokenEl) tokenEl.textContent = '0';
+    window._hasVotedCurrent = false;
   }
 
   // ── Load candidates from Supabase ──
@@ -137,7 +148,7 @@ async function loadCandidates(voter) {
       <div class="candidate-symbol">${c.symbol || ''}</div>
     `;
     card.addEventListener('click', () => {
-      if (voter.has_voted) return;
+      if (window._hasVotedCurrent) return;
       selectCandidate(card, c.id, onChainId);   // pass both IDs
     });
     container.appendChild(card);
@@ -155,11 +166,9 @@ async function checkOnChainVotedState(voter) {
     const contract = new ethers.Contract(CONFIG.contractAddress, CONFIG.contractABI, provider);
     const eid = getCurrentElectionId();
     const voted    = await contract.hasVoted(eid, address);
-    if (voted && !voter.has_voted) {
-      // On-chain says voted but Supabase hasn't caught up — update UI
-      voter.has_voted    = true;
-      voter.voting_token = 0;
-      sessionStorage.setItem('voter', JSON.stringify(voter));
+    if (voted && !window._hasVotedCurrent) {
+      // On-chain says voted but Supabase tx hasn't synced — update UI
+      window._hasVotedCurrent = true;
       document.getElementById('token-display').textContent = '0';
       const b = document.getElementById('status-badge');
       if (b) { b.textContent = 'STATUS: VOTED'; b.className = 'status-badge'; b.style.cssText = 'background:rgba(160,174,192,0.12);color:var(--text3);border:1px solid var(--border)'; }
@@ -231,8 +240,8 @@ async function castVote() {
   let voter = JSON.parse(sessionStorage.getItem('voter') || 'null');
   if (!voter) { alert('Session expired. Please log in again.'); window.location.href = 'auth.html'; return; }
 
-  if (voter.has_voted || voter.voting_token === 0) {
-    alert('You have already cast your vote. Each voter gets 1 token.');
+  if (window._hasVotedCurrent) {
+    alert('You have already cast your vote in this election.');
     lockBallot();
     return;
   }
@@ -311,13 +320,7 @@ async function castVote() {
       status:       'CONFIRMED'
     });
 
-    // ── 6. Update voter record in Supabase ──
-    await db.from('voters').update({ has_voted: true, voting_token: 0 }).eq('id', voter.id);
-
-    // ── 7. Update sessionStorage ──
-    voter.has_voted    = true;
-    voter.voting_token = 0;
-    sessionStorage.setItem('voter', JSON.stringify(voter));
+    window._hasVotedCurrent = true;
 
     // ── 8. Update UI ──
     updateVotedState(voter);
